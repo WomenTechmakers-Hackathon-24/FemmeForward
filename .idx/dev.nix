@@ -11,6 +11,7 @@
     pkgs.python311Packages.pip
     pkgs.python311Packages.flask
     pkgs.python311Packages.google-cloud-firestore
+    pkgs.python311Packages.google-generativeai
     # pkgs.nodejs_20
     # pkgs.nodePackages.nodemon
   ];
