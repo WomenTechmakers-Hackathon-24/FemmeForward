@@ -1,8 +1,8 @@
-from enums import DifficultyLevel, AgeGroup, ContentTag
 from datetime import datetime, timedelta
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import List, Dict, Set, Optional, Any
+from firebase_admin import firestore
 
 
 @dataclass
@@ -28,6 +28,7 @@ class ProgressTracker:
             "KNOWLEDGE_SEEKER": "Complete 10 lessons",
             "QUIZ_CHAMPION": "Perfect score in advanced quiz"
         }
+        self.db = firestore.client()
 
     def update_progress(
         self, 
@@ -72,12 +73,19 @@ class ProgressTracker:
         # Check and award badges
         new_badges = self._check_badges(progress)
         
-        return {
-            "updated_progress": progress,
-            "new_badges": new_badges,
-            "total_points": progress.total_points,
-            "streak_days": progress.streak_days
-        }
+        # Update difficulty levels
+        if activity_type == "quiz" and score == 1.0:
+            progress.difficulty_levels[content_id] += 1
+        
+        # Store progress in firestore
+        progress_ref = self.db.collection('user_progress').document(user_id)
+        progress_ref.set(progress.__dict__)
+
+        return progress.__dict__
+
+    def get_user_progress(self, user_id: str) -> Optional[UserProgress]:
+        return self.user_progress.get(user_id)
+
 
     def _check_badges(self, progress: UserProgress) -> Set[str]:
         new_badges = set()

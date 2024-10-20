@@ -1,15 +1,13 @@
 from dataclasses import dataclass
 from typing import List
 import google.generativeai as genai
-from enums import DifficultyLevel, AgeGroup, ContentTag
-from PromptGenerator import PromptGenerator
-from ContentValidator import ContentValidator
+from PromptGenerator import PromptGenerator, DifficultyLevel, ContentTag, AgeGroup
 import firebase_admin
-from firebase_admin import firestore
+from firebase_admin import firestore, credentials
 from datetime import timedelta, datetime
 
 # Initialize the Gemini API
-genai.configure(api_key='YOUR_API_KEY')
+genai.configure(api_key='AIzaSyCu0WWVaqRtadJqmrf8GqBbA6UUVgLIeao')
 
 @dataclass
 class QuizQuestion:
@@ -25,7 +23,7 @@ class ContentGenerator:
         self.prompt_generator = PromptGenerator()
         self.db = firestore.client()
 
-    async def generate_quiz(
+    def generate_quiz(
         self,
         topic: str,
         tags: List[ContentTag],
@@ -44,23 +42,40 @@ class ContentGenerator:
         # Add specific instructions for structured output
         prompt += f"\nPlease generate {num_questions} questions following this exact format."
         
-        response = await self.model.generate_content_async(prompt)
+        response = self.model.generate_content(prompt)
         
-        # Parse the response and convert to QuizQuestion objects
-        # Note: You'll need to implement proper parsing based on Gemini's output
-        questions = self._parse_quiz_response(response.text)
+        print('Generated quiz:', response.text)
+
+        return self._parse_quiz_response(response)
+    
+    def _parse_quiz_response(self, response):
+        questions = []
+        for question in response['questions']:
+            question_text = question['question']
+            options = question['options']
+            correct_answer = question['correct_answer']
+            explanation = question['explanation']
+            learning_point = question['learning_point']
+            
+            quiz_question = QuizQuestion(
+                question=question_text,
+                options=options,
+                correct_answer=correct_answer,
+                explanation=explanation,
+                learning_point=learning_point
+            )
+            
+            questions.append(quiz_question)
+
         return questions
 
-    def _parse_quiz_response(self, response_text: str) -> List[QuizQuestion]:
-        # Implement parsing logic based on the actual response format
-        # This is a placeholder implementation
-        questions = []
-        # Add parsing logic here
-        return questions
+    def _generate_quiz_id(self):
+        # hash the current timestamp to generate a unique ID
+        return str(hash(datetime.now()))
 
     def store_quiz(self, quiz_data, expiration_seconds=3600):
-        quiz_id = generate_unique_id()  ## @TODO: Implement this function
-        quiz_ref = db.collection('temporary_quizzes').document(quiz_id)
+        quiz_id = self._generate_quiz_id()
+        quiz_ref = self.db.collection('temporary_quizzes').document(quiz_id)
         quiz_ref.set(quiz_data)
 
         # Set TTL using a server timestamp and expiration duration
@@ -69,7 +84,7 @@ class ContentGenerator:
         return quiz_id
 
     def get_quiz(self, quiz_id):
-        quiz_ref = db.collection('temporary_quizzes').document(quiz_id)
+        quiz_ref = self.db.collection('temporary_quizzes').document(quiz_id)
         quiz_doc = quiz_ref.get()
 
         if quiz_doc.exists:
@@ -84,3 +99,34 @@ class ContentGenerator:
             return None
 
         
+def main():
+
+    cred = credentials.Certificate("empowerwomen-fbbda-firebase-adminsdk-96bfo-3ab2cc60b5.json")
+    firebase_admin.initialize_app(cred)
+
+    content_generator = ContentGenerator()
+    topic = "Understanding Your Menstrual Cycle"
+    tags = [ContentTag.MENSTRUAL_HEALTH]
+    age_group = AgeGroup.TEEN
+    difficulty = DifficultyLevel.BEGINNER
+    num_questions = 5
+
+    quiz = content_generator.generate_quiz(
+        topic=topic,
+        tags=tags,
+        age_group=age_group,
+        difficulty=difficulty,
+        num_questions=num_questions
+    )
+
+    quiz_id = content_generator.store_quiz(quiz)
+    print(f"Quiz stored with ID: {quiz_id}")
+
+    retrieved_quiz = content_generator.get_quiz(quiz_id)
+    if retrieved_quiz:
+        print("Retrieved quiz:", retrieved_quiz)
+    else:
+        print("Quiz not found or expired.")
+
+if __name__ == "__main__":
+    main()

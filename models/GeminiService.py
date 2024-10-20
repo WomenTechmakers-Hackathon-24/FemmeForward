@@ -1,25 +1,15 @@
-from enum import Enum
-from typing import List, Dict, Any, Optional
 import google.generativeai as genai
-from datetime import datetime
-import json
 import asyncio
-from enums import DifficultyLevel, AgeGroup, ContentTag
 from PromptGenerator import PromptGenerator
 from ContentValidator import ContentValidator
-
-class GeminiAPI:
-    def __init__(self, api_key: str):
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-pro')
-        self._cache = {}
+from ProgressTracker import ProgressTracker
+from PromptGenerator import DifficultyLevel, ContentTag, AgeGroup
         
 # Example usage
 async def main():
     progress_tracker = ProgressTracker()
     content_validator = ContentValidator()
     prompt_generator = PromptGenerator()
-    genai = GeminiAPI()
     
     # Track user progress
     user_id = "user123"
