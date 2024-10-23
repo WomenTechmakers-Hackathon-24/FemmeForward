@@ -1,9 +1,13 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
-from firebase_admin import firestore
-from firebase_db import db
+from flask import Flask, request, jsonify
+import firebase_admin
+from firebase_admin import firestore, credentials
+
+from ContentGenerator import ContentGenerator
 
 app = Flask(__name__)
-
+cred = credentials.Certificate("empowerwomen-fbbda-firebase-adminsdk-96bfo-3ab2cc60b5.json")
+firebase_admin.initialize_app(cred)
+db = firestore.client()
 
 @app.route('/register', methods=['POST'])
 def register_user():
@@ -14,14 +18,25 @@ def register_user():
         return jsonify({"error": "User already exists"}), 400
     
     user_ref.set({
-        'username': data['username'],
+        'name': data['name'],
         'email': data['email'],
-        'age': data['age'],
+        'birthdate': data['birthdate'],
         'interests': data['interests'],
+        'difficulty': data['difficulty'],
         'created_at': firestore.SERVER_TIMESTAMP
     })
     
     return jsonify({"message": "User registered successfully"}), 201
+
+@app.route('/login', methods=['GET'])
+def login():
+    email = request.args.get('email')
+    user_ref = db.collection('users').document(email)
+    return str(user_ref.get().exists)
+
+@app.route('/generate_quiz', methods=['POST'])
+def generate_quiz():
+
 
 @app.route('/content', methods=['GET'])
 def get_personalized_content():
@@ -74,3 +89,6 @@ def get_user_stats(user_email):
         "completion_rate": completed_content / total_content if total_content > 0 else 0,
         "average_score": round(avg_score, 2)
     }), 200
+
+if __name__ == '__main__':
+    app.run(debug=True)
