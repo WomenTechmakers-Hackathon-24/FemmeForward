@@ -140,6 +140,9 @@ class PromptGenerator:
         difficulty: DifficultyLevel,
         content_type: str = "quiz"
     ) -> str:
+        difficulty = DifficultyLevel(difficulty)
+        age_group = AgeGroup(age_group)
+        tags = [ContentTag(tag) for tag in tags]
         return self._generate_generic_prompt(topic, tags, age_group, difficulty, content_type)
 
     def get_safe_prompt(self, tags: List[ContentTag], content_type: str, topic: str) -> str:
@@ -147,7 +150,7 @@ class PromptGenerator:
         for tag in tags:
             if tag in self.safe_prefixes:
                 prefix += f"\n{self.safe_prefixes[tag][content_type]}"
-        suffix = self.safe_suffixes[content_type]
+        # suffix = self.safe_suffixes[content_type]
         
         return f"{prefix}{topic}."
 

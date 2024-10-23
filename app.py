@@ -1,13 +1,23 @@
 from flask import Flask, request, jsonify
 import firebase_admin
 from firebase_admin import firestore, credentials
+import sys
+import os
+from dotenv import load_dotenv
+import google.generativeai as genai
 
+# Add the src folder to the system path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 from ContentGenerator import ContentGenerator
 
 app = Flask(__name__)
 cred = credentials.Certificate("empowerwomen-fbbda-firebase-adminsdk-96bfo-3ab2cc60b5.json")
 firebase_admin.initialize_app(cred)
 db = firestore.client()
+load_dotenv()
+
+# Initialize the Gemini API
+genai.configure(api_key='GENAI_API_KEY')
 
 @app.route('/register', methods=['POST'])
 def register_user():
@@ -36,6 +46,18 @@ def login():
 
 @app.route('/generate_quiz', methods=['POST'])
 def generate_quiz():
+    data = request.json
+    content_generator = ContentGenerator()
+    quiz = content_generator.generate_quiz(
+        topic=data['topic'],
+        tags=data['tags'],
+        age_group=data['age_group'],
+        difficulty=data['difficulty'],
+        num_questions=data['num_questions']
+    )
+    
+    quiz_list = content_generator.store_quiz(quiz)
+    return jsonify(quiz_list), 201
 
 
 @app.route('/content', methods=['GET'])

@@ -1,14 +1,10 @@
 from dataclasses import dataclass
 import json
 from typing import List
-import google.generativeai as genai
 from PromptGenerator import PromptGenerator, DifficultyLevel, ContentTag, AgeGroup
-import firebase_admin
-from firebase_admin import firestore, credentials
+from firebase_admin import firestore
 from datetime import timedelta, datetime, timezone
-
-# Initialize the Gemini API
-genai.configure(api_key='AIzaSyCu0WWVaqRtadJqmrf8GqBbA6UUVgLIeao')
+import google.generativeai as genai
 
 @dataclass
 class QuizQuestion:
@@ -47,8 +43,6 @@ class ContentGenerator:
         )
         response = self.model.generate_content(prompt, generation_config={'response_mime_type': 
                                                                           'application/json', })
-        
-        print('Generated quiz:', response.text)
 
         return self._parse_quiz_response(response.text)
 
@@ -105,36 +99,34 @@ class ContentGenerator:
         else:
             return None
 
-        
-def main():
+# def main():
+#     cred = credentials.Certificate("empowerwomen-fbbda-firebase-adminsdk-96bfo-3ab2cc60b5.json")
+#     firebase_admin.initialize_app(cred)
 
-    cred = credentials.Certificate("empowerwomen-fbbda-firebase-adminsdk-96bfo-3ab2cc60b5.json")
-    firebase_admin.initialize_app(cred)
+#     content_generator = ContentGenerator()
+#     topic = "Female Nutrition Basics"
+#     tags = [ContentTag.NUTRITION]
+#     age_group = AgeGroup.TEEN
+#     difficulty = DifficultyLevel.BEGINNER
+#     num_questions = 3
 
-    content_generator = ContentGenerator()
-    topic = "Female Nutrition Basics"
-    tags = [ContentTag.NUTRITION]
-    age_group = AgeGroup.TEEN
-    difficulty = DifficultyLevel.BEGINNER
-    num_questions = 3
+#     quiz = content_generator.generate_quiz(
+#         topic=topic,
+#         tags=tags,
+#         age_group=age_group,
+#         difficulty=difficulty,
+#         num_questions=num_questions
+#     )
 
-    quiz = content_generator.generate_quiz(
-        topic=topic,
-        tags=tags,
-        age_group=age_group,
-        difficulty=difficulty,
-        num_questions=num_questions
-    )
+#     quiz_list = content_generator.store_quiz(quiz)
+#     print("Stored quizzes:", quiz_list)
 
-    quiz_list = content_generator.store_quiz(quiz)
-    print("Stored quizzes:", quiz_list)
+#     for quiz_id in quiz_list:
+#         quiz_data = content_generator.get_quiz(quiz_id)
+#         if quiz_data:
+#             print("Retrieved quiz:", quiz_data)
+#         else:
+#             print("Quiz not found or expired.")
 
-    for quiz_id in quiz_list:
-        quiz_data = content_generator.get_quiz(quiz_id)
-        if quiz_data:
-            print("Retrieved quiz:", quiz_data)
-        else:
-            print("Quiz not found or expired.")
-
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
