@@ -6,9 +6,9 @@ const Index: React.FC = () => {
   const { login } = useAuth();
 
   return (
-    <div>
-      <h1>Please log in</h1>
-      <button onClick={login}>Log in with Google</button>
+    <div className="centered-container">
+      <h1 className="logo">Empowering Women</h1>
+      <button className="button" onClick={login}>Log in with Google</button>
     </div>
   );
 };

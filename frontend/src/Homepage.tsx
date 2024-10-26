@@ -12,7 +12,7 @@ const Homepage: React.FC = () => {
   return (
     <div>
       <h1>Welcome, {user.displayName}!</h1>
-      <button onClick={logout}>Log out</button>
+      <button className="button" onClick={logout}>Log out</button>
     </div>
   );
 };
