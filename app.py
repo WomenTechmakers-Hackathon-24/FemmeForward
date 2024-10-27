@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from firebase_admin import firestore, credentials, auth
 import firebase_admin
 import google.generativeai as genai
@@ -13,6 +14,21 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 from ContentGenerator import ContentGenerator
 
 app = Flask(__name__)
+# Configure CORS
+CORS(app, resources={
+    r"/*": {
+        "origins": [
+            "http://localhost:3000",  # React default port
+            "http://localhost:5173",  # Vite default port
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:5173"
+        ],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True
+    }
+})
+
 load_dotenv()
 
 # Initialize Firebase if not already initialized
