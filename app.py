@@ -22,7 +22,7 @@ if not firebase_admin._apps:
 db = firestore.client()
 
 # Initialize the Gemini API
-genai.configure(api_key='AIzaSyA1cVBZoZmq8dm3qCQuzu5_k6iVOWbr-5Q')
+genai.configure(api_key=os.getenv('GENAI_API'))
 
 def token_required(f):
     @wraps(f)
