@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth, signInWithPopup, GoogleAuthProvider, signOut, User } from './firebase';
 import { UserData } from './types/auth';
-import axios from 'axios'; // Need this for isAxiosError type guard
+import axios from 'axios';
 import api from './api/axios';
 
 interface AuthContextProps {
