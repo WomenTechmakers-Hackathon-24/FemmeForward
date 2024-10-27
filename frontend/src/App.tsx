@@ -1,17 +1,26 @@
-// src/App.tsx
 import React from 'react';
-import { useAuth, AuthProvider } from './AuthContext.tsx';
+import { useAuth, AuthProvider } from './AuthContext';
 import Homepage from './Homepage';
 import Index from './Index';
+import Registration from './components/Registration';
+import LoadingSpinner from './components/LoadingSpinner';
 
 const App: React.FC = () => {
-  const auth = useAuth();
+  const { user, userData, isLoading } = useAuth();
 
-  return (
-    <div>
-      {auth?.user ? <Homepage /> : <Index />}
-    </div>
-  );
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+
+  if (!user) {
+    return <Index />;
+  }
+
+  if (userData && !userData.isRegistered) {
+    return <Registration />;
+  }
+
+  return <Homepage />;
 };
 
 // Wrap your app with the AuthProvider
