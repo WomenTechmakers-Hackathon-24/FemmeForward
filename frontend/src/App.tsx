@@ -12,15 +12,15 @@ const App: React.FC = () => {
     return <LoadingSpinner />;
   }
 
-  if (!user) {
-    return <Index />;
+  if (userData && userData.isRegistered) {
+    return <Homepage />;
   }
 
-  if (userData && !userData.isRegistered) {
+  if (user ) {
     return <Registration />;
   }
 
-  return <Homepage />;
+  return <Index />;
 };
 
 // Wrap your app with the AuthProvider

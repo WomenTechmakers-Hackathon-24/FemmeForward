@@ -50,7 +50,7 @@ const Registration = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-violet-200 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold tracking-tight">Complete Registration</CardTitle>
@@ -111,7 +111,7 @@ const Registration = () => {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full"
+              className="w-full bg-indigo-500"
             >
               {isSubmitting ? 'Creating your account...' : 'Complete Registration'}
             </Button>

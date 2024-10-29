@@ -1,13 +1,32 @@
 import axios from 'axios';
+import { getAuth } from 'firebase/auth';
 
 // Create an axios instance with default config
 const api = axios.create({
-  baseURL: '/api', // Update this to your API base URL
+  baseURL: 'https://empowerwomen./', // Update this to your API base URL
   timeout: 5000,
   headers: {
     'Content-Type': 'application/json'
   }
 });
+
+// Add request interceptor to include Firebase token
+api.interceptors.request.use(
+  async config => {
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+
+    if (currentUser) {
+      const firebaseIdToken = await currentUser.getIdToken();
+      config.headers['Authorization'] = `Bearer ${firebaseIdToken}`;
+    }
+
+    return config;
+  },
+  error => {
+    return Promise.reject(error);
+  }
+);
 
 // Add response interceptor for error handling
 api.interceptors.response.use(

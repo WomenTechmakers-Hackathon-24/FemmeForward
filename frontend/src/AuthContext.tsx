@@ -9,6 +9,8 @@ interface AuthContextProps {
   user: User | null;
   userData: UserData | null;
   isLoading: boolean;
+  error: string | null;
+  setError: (error: string | null) => void; // Add setError function
   login: () => void;
   logout: () => void;
   completeRegistration: (userData: Partial<UserData>) => Promise<void>;
@@ -20,16 +22,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const checkUserRegistration = async (user: User) => {
     try {
-      const response = await api.get(`/users/${user.uid}`);
+      const response = await api.get(`/profile?email=${user.email}`);
       setUserData(response.data);
     } catch (error) {
       if (axios.isAxiosError(error)) {  // This line needs the axios import
         // Handle 404 (user not found) or other errors
         const isNotFound = error.response?.status === 404;
-        
+        setError(null);
         // Set minimal user data for unregistered or error cases
         setUserData({
           id: user.uid,
@@ -41,6 +44,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (!isNotFound) {
           console.error('Error checking user registration:', error);
+          setError('Error connecting to the server.');
+          setUser(null);
+          logout();
         }
       }
     } finally {
@@ -52,11 +58,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const result = await signInWithPopup(auth, new GoogleAuthProvider());
       if (result.user) {
+        setError(null);
+        setUser(result.user);  // Set user state immediately
         await checkUserRegistration(result.user);
       }
     } catch (error) {
       console.error('Login error:', error);
+      setError('Login failed. Please try again.');
       setIsLoading(false);
+      setUser(null);
     }
   };
 
@@ -105,7 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, userData, isLoading, login, logout, completeRegistration }}>
+    <AuthContext.Provider value={{ user, userData, isLoading, error, setError, login, logout, completeRegistration }}>
       {children}
     </AuthContext.Provider>
   );
