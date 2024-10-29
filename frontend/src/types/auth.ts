@@ -1,7 +1,13 @@
 export interface UserData {
     id: string;
     email: string;
-    isRegistered: boolean;
     birthdate: string; // Format: YYYY-MM-DD
     name: string;
   }
+  
+  export interface LoadingState {
+    auth: boolean;
+    registration: boolean;
+    profileCheck: boolean;
+  }
+  

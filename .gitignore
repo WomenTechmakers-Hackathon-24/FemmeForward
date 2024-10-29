@@ -1,3 +1,4 @@
 frontend/tsconfig.app.tsbuildinfo
 frontend/tsconfig.node.tsbuildinfo
 frontend/.firebase/*
+frontend/.env

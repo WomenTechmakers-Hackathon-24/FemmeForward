@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { UserCircle, Calendar } from "lucide-react";
 
 const Registration = () => {
-  const { user, completeRegistration, logout } = useAuth();
+  const { googleUser, completeRegistration, logout } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -55,7 +55,7 @@ const Registration = () => {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold tracking-tight">Complete Registration</CardTitle>
           <CardDescription className="text-gray-500">
-            Welcome back, {user?.email}! Please complete your profile. 
+            Welcome back, {googleUser?.email}! Please complete your profile. 
             <button 
               onClick={logout} 
               className="text-sm text-blue-600 underline hover:text-blue-800 italic ml-2" // Added margin-left

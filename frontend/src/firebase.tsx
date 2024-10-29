@@ -3,13 +3,13 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, User } from 'firebase/auth';
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBQXX5VUW8hHGG8dhd1c_JJYpJLv1mTzB8",
-    authDomain: "empowerwomen-fbbda.firebaseapp.com",
-    projectId: "empowerwomen-fbbda",
-    storageBucket: "empowerwomen-fbbda.appspot.com",
-    messagingSenderId: "551651188331",
-    appId: "1:551651188331:web:ec269254d8b6bc08b55b2e",
-    measurementId: "G-1DLFSP45VH"
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID,
+    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
   };
 
 const app = initializeApp(firebaseConfig);

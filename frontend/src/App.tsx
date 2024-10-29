@@ -1,3 +1,4 @@
+// src/App.tsx
 import React from 'react';
 import { useAuth, AuthProvider } from './AuthContext';
 import Homepage from './Homepage';
@@ -6,22 +7,32 @@ import Registration from './components/Registration';
 import LoadingSpinner from './components/LoadingSpinner';
 
 const App: React.FC = () => {
-  const { user, userData, isLoading } = useAuth();
+  const { googleUser, userData, loadingStates, error } = useAuth();
 
-  if (isLoading) {
+  // Show loading spinner only if we're actually loading something
+  if (loadingStates.auth || (loadingStates.profileCheck && !userData)) {
     return <LoadingSpinner />;
   }
 
-  if (userData && userData.isRegistered) {
+  // If there's an error or no user, show the index page
+  if (error || !googleUser) {
+    return <Index />;
+  }
+
+  // If user is registered, show homepage
+  if (userData) {
     return <Homepage />;
   }
 
-  if (user ) {
+  // If user exists but isn't registered, show registration
+  if (googleUser) {
     return <Registration />;
   }
 
+  // Fallback to index
   return <Index />;
 };
+
 
 // Wrap your app with the AuthProvider
 const RootApp = () => (
