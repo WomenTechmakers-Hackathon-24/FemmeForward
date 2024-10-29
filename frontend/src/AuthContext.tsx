@@ -75,7 +75,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setError('Error connecting to the server.');
             setGoogleUser(null);
             setUserData(null);
-            setLoadingStates(prev => ({ 
+            setLoadingStates(({ 
               auth: false, 
               registration: false, 
               profileCheck: false 

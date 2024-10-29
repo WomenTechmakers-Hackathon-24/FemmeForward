@@ -1,5 +1,5 @@
 // src/Index.tsx
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useAuth } from './AuthContext.tsx';
 import LoginComponent from './components/LoginComponent.tsx';
 
