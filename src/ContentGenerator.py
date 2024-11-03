@@ -76,7 +76,7 @@ class ContentGenerator:
         for question in quiz_data:
             question = question.__dict__
             quiz_id = self._generate_quiz_id()
-            quiz_ref = self.db.collection('temporary_quizzes').document(quiz_id)
+            quiz_ref = self.db.collection('content').document(quiz_id)
             # Set TTL using a server timestamp and expiration duration
             expiration_time = datetime.now(timezone.utc) + timedelta(seconds=expiration_seconds)
             question['expires_at'] = expiration_time
@@ -85,7 +85,7 @@ class ContentGenerator:
         return quiz_list
 
     def get_quiz(self, quiz_id):
-        quiz_ref = self.db.collection('temporary_quizzes').document(quiz_id)
+        quiz_ref = self.db.collection('content').document(quiz_id)
         quiz_doc = quiz_ref.get()
 
         if quiz_doc.exists:

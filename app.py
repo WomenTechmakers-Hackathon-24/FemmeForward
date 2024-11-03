@@ -21,7 +21,8 @@ CORS(app, resources={
             "http://localhost:3000",  # React default port
             "http://localhost:5173",  # Vite default port
             "http://127.0.0.1:3000",
-            "http://127.0.0.1:5173"
+            "http://127.0.0.1:5173",
+            "https://empowerwomen-fbbda.web.app/"
         ],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"],
@@ -194,7 +195,8 @@ def generate_quiz(current_user):
 @app.route('/content', methods=['GET'])
 @token_required
 def get_personalized_content(current_user):
-    content_query = db.collection('content').where('tags', 'array_contains_any', current_user['interests']).limit(5)
+    content_query = db.collection('content').where('tags', 'array_contains_any', current_user['interests'])\
+        .where('difficulty_level', '==', current_user['difficulty_level']).limit(5)
     content = [doc.to_dict() for doc in content_query.stream()]
     return jsonify(content), 200
 
