@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List
+from typing import List, Dict
 
 class DifficultyLevel(Enum):
     BEGINNER = "beginner"
@@ -27,207 +27,134 @@ class AgeGroup(Enum):
     MATURE = "50+"
 
 class PromptGenerator:
-
-    def __init__(self):
-        self.safe_prefixes = {
-            ContentTag.REPRODUCTIVE_HEALTH: {
-                'educational': "Generate evidence-based educational content about reproductive system health, focusing on ",
-                'quiz': "Create medical education questions about reproductive system wellness, specifically covering ",
-                'article': "Provide scientific information about reproductive system health and wellness, explaining "
-            },
-            
-            ContentTag.MENSTRUAL_HEALTH: {
-                'educational': "Create educational content about menstrual health and cycle awareness, discussing ",
-                'quiz': "Generate health education questions about menstrual wellness, covering ",
-                'article': "Provide medical information about menstrual health and cycle patterns, focusing on "
-            },
-            
-            ContentTag.MENTAL_HEALTH: {
-                'educational': "Develop wellness education content about emotional and mental well-being, addressing ",
-                'quiz': "Create psychological wellness questions about mental health awareness, covering ",
-                'article': "Share professional mental health information and coping strategies, focusing on "
-            },
-            
-            ContentTag.NUTRITION: {
-                'educational': "Create dietary wellness content about balanced nutrition and healthy eating, explaining ",
-                'quiz': "Generate nutritional education questions about healthy eating habits, covering ",
-                'article': "Provide evidence-based nutrition information and dietary guidelines, focusing on "
-            },
-            
-            ContentTag.FITNESS: {
-                'educational': "Develop physical wellness content about exercise and movement, discussing ",
-                'quiz': "Create fitness education questions about physical activity and exercise, covering ",
-                'article': "Share professional guidance about physical fitness and exercise safety, explaining "
-            },
-            
-            ContentTag.HORMONAL_HEALTH: {
-                'educational': "Generate medical education content about endocrine system health, focusing on ",
-                'quiz': "Create endocrine wellness questions about hormonal balance, covering ",
-                'article': "Provide scientific information about hormonal health and balance, explaining "
-            },
-            
-            ContentTag.SEXUAL_HEALTH: {
-                'educational': "Create medical education content about reproductive wellness and health, covering ",
-                'quiz': "Generate clinical questions about reproductive system health, focusing on ",
-                'article': "Provide healthcare information about reproductive system wellness, discussing "
-            },
-            
-            ContentTag.PREVENTIVE_CARE: {
-                'educational': "Develop preventive healthcare content about wellness maintenance, explaining ",
-                'quiz': "Create health maintenance questions about preventive care practices, covering ",
-                'article': "Share professional guidance about preventive healthcare measures, focusing on "
-            },
-            
-            ContentTag.PREGNANCY: {
-                'educational': "Generate prenatal health education content about pregnancy wellness, discussing ",
-                'quiz': "Create maternal health questions about pregnancy and prenatal care, covering ",
-                'article': "Provide evidence-based information about pregnancy and prenatal health, focusing on "
-            },
-            
-            ContentTag.TEEN_HEALTH: {
-                'educational': "Create adolescent wellness content about youth health education, discussing ",
-                'quiz': "Generate teen health education questions about adolescent wellness, covering ",
-                'article': "Share age-appropriate health information for adolescent wellness, focusing on "
-            },
-            
-            ContentTag.BODY_IMAGE: {
-                'educational': "Develop positive wellness content about body acceptance and health, addressing ",
-                'quiz': "Create body wellness education questions about healthy self-image, covering ",
-                'article': "Share professional guidance about body acceptance and wellness, focusing on "
-            },
-            
-            ContentTag.GENERAL_WELLNESS: {
-                'educational': "Create comprehensive wellness content about overall health maintenance, discussing ",
-                'quiz': "Generate general health education questions about wellness practices, covering ",
-                'article': "Provide evidence-based information about overall health and wellness, focusing on "
-            }
-        }
-        
-        self.safe_suffixes = {
-            'educational': """
-            Ensure content:
-            - Uses medical terminology
-            - Maintains professional tone
-            - Includes scientific context
-            - Focuses on health education
-            - Provides evidence-based information
-            """,
-            
-            'quiz': """
-            Format questions to be:
-            - Scientifically accurate
-            - Education-focused
-            - Professional in language
-            - Evidence-based
-            - Health-oriented
-            """,
-            
-            'article': """
-            Content should be:
-            - Medically accurate
-            - Educational in nature
-            - Professional in tone
-            - Research-supported
-            - Wellness-focused
-            """
-        }
-
-    def generate_prompt(
+    def generate_adaptive_content(
         self,
         topic: str,
         tags: List[ContentTag],
         age_group: AgeGroup,
         difficulty: DifficultyLevel,
-        content_type: str = "quiz"
-    ) -> str:
-        difficulty = DifficultyLevel(difficulty)
-        age_group = AgeGroup(age_group)
-        tags = [ContentTag(tag) for tag in tags]
-        return self._generate_generic_prompt(topic, tags, age_group, difficulty, content_type)
-
-    def get_safe_prompt(self, tags: List[ContentTag], content_type: str, topic: str) -> str:
-        prefix = ""
-        for tag in tags:
-            if tag in self.safe_prefixes:
-                prefix += f"\n{self.safe_prefixes[tag][content_type]}"
-        # suffix = self.safe_suffixes[content_type]
-        
-        return f"{prefix}{topic}."
-
-    def _generate_generic_prompt(
-        self,
-        topic: str,
-        tags: List[ContentTag],
-        age_group: AgeGroup,
-        difficulty: DifficultyLevel,
-        content_type: str
+        content_type: str,
+        adjustments: Dict
     ) -> str:
         age_appropriate_language = {
-            AgeGroup.TEEN: "Use friendly, clear language with relatable examples.",
-            AgeGroup.YOUNG_ADULT: "Use straightforward language with practical examples.",
-            AgeGroup.ADULT: "Use comprehensive language with detailed examples.",
-            AgeGroup.MATURE: "Use respectful, thorough language with relevant examples."
+            AgeGroup.TEEN: "Use friendly, clear language with relatable examples and social media references.",
+            AgeGroup.YOUNG_ADULT: "Use straightforward language with practical examples and contemporary references.",
+            AgeGroup.ADULT: "Use comprehensive language with detailed examples and professional context.",
+            AgeGroup.MATURE: "Use respectful, thorough language with age-appropriate health considerations."
         }
 
-        difficulty_adjustments = {
-            DifficultyLevel.BEGINNER: "Focus on basic concepts and everyday applications.",
-            DifficultyLevel.INTERMEDIATE: "Include more detailed explanations and specific scenarios.",
-            DifficultyLevel.ADVANCED: "Cover complex topics and their interconnections."
+        depth_instructions = {
+            "deep_dive": "Include advanced concepts, recent research, and detailed analysis.",
+            "comprehensive": "Provide thorough explanations with practical applications.",
+            "foundational": "Focus on core concepts with additional support and examples."
         }
 
         return f"""
-        Create a {difficulty.value}-level {content_type} about {topic}
+        Create a personalized {difficulty.value}-level {content_type} about {topic}
         for {age_group.value} age group.
 
-        Content Guidelines:
+        Content Personalization:
         {age_appropriate_language.get(age_group, "Use clear, appropriate language.")}
-        {difficulty_adjustments.get(difficulty, "Adjust complexity appropriately.")}
-        {self.get_safe_prompt(tags, content_type, topic)}
+        {depth_instructions.get(adjustments['depth_level'], "Adjust depth appropriately.")}
+        
+        Focus on these areas: {', '.join(str(area) for area in adjustments['focus_areas'])}
+        Complexity Adjustment: {adjustments['complexity_adjustment']['adjustment_factor']}
+
+        Content Guidelines:
+        1. Adapt explanations based on previous performance
+        2. Incorporate personalized examples
+        3. Address specific knowledge gaps
+        4. Build upon demonstrated strengths
+        5. Include scaffolded learning elements
+        6. Provide targeted feedback opportunities
+        7. Integrate real-world applications
+        8. Include motivational elements
+        9. Reference related completed topics
+        10. Prepare for upcoming concepts
 
         Topic Tags: {', '.join(tag.value for tag in tags)}
 
         Required Elements:
-        1. Age-appropriate examples and scenarios
-        2. Evidence-based information
-        3. Empowering and positive messaging
-        4. Practical, actionable advice
-        5. Cultural sensitivity
-        6. Clear explanations of medical terms
-        7. Resources for additional support
-        8. Educational value and scientific
-        9. Focused on health and well-being
-        
+        1. Personalized learning objectives
+        2. Knowledge check points
+        3. Real-time feedback mechanisms
+        4. Progress indicators
+        5. Achievement milestones
+        6. Adaptive challenge levels
+        7. Contextual help resources
+        8. Performance-based recommendations
+        9. Confidence-building elements
+        10. Next steps guidance
 
-        Format: {self._get_format_instructions(content_type)}
+        Format: {self._get_enhanced_format_instructions(content_type, adjustments)}
         """
 
-    def _get_format_instructions(self, content_type: str) -> str:
+    def _get_enhanced_format_instructions(self, content_type: str) -> str:
         formats = {
             "quiz": """
-            Please format each question as a JSON object with the following structure:
+            Please format as a JSON object with:
             {
-                "question": "Provide the question text here.",
-                "options": [
-                    "A) Provide the first option here.",
-                    "B) Provide the second option here.",
-                    "C) Provide the third option here.",
-                    "D) Provide the fourth option here."
+                "questions": [
+                    {
+                        "id": "unique_identifier",
+                        "question": "Question text",
+                        "difficulty_level": "current_difficulty",
+                        "topic_tag": "relevant_tag",
+                        "options": ["A) option1", "B) option2", "C) option3", "D) option4"],
+                        "correct_answer": "correct_option",
+                        "explanation": "detailed_explanation",
+                        "learning_point": "key_takeaway",
+                        "hints": ["hint1", "hint2"],
+                        "follow_up_questions": ["question1", "question2"],
+                        "related_topics": ["topic1", "topic2"],
+                        "confidence_check": "confidence_question",
+                        "misconception_address": "common_misconception_explanation"
+                    }
                 ],
-                "correct_answer": "Specify the correct answer (e.g., 'B').",
-                "explanation": "Provide a detailed explanation of the correct answer.",
-                "learning_point": "State the key takeaway from this question."
+                "adaptive_elements": {
+                    "difficulty_progression": "progression_path",
+                    "topic_relationships": ["related_topics"],
+                    "prerequisite_concepts": ["prerequisites"],
+                    "reinforcement_points": ["points_to_reinforce"]
+                },
+                "performance_metrics": {
+                    "target_understanding_level": "target_level",
+                    "minimum_passing_score": "min_score",
+                    "mastery_criteria": "mastery_definition"
+                }
             }
-            Ensure that the JSON structure is valid and all strings are properly quoted.
             """,
             "lesson": """
-            Format the lesson with:
-            1. Introduction
-            2. Key concepts
-            3. Examples
-            4. Check-in questions
-            5. Summary
-            6. Action items
-            7. Resources
+            Format the adaptive lesson with:
+            1. Personalized Introduction
+               - Prior knowledge activation
+               - Learning path context
+               - Personal relevance
+            
+            2. Core Content
+               - Scaffolded concepts
+               - Progressive complexity
+               - Adaptive examples
+            
+            3. Interactive Elements
+               - Knowledge checks
+               - Reflection points
+               - Application exercises
+            
+            4. Support Resources
+               - Targeted help
+               - Extension materials
+               - Review suggestions
+            
+            5. Progress Tracking
+               - Achievement markers
+               - Mastery indicators
+               - Next steps preview
+            
+            6. Personalized Summary
+               - Key takeaways
+               - Individual focus points
+               - Connection to goals
             """
         }
-        return formats.get(content_type, "Use clear, structured formatting.")
+        return formats.get(content_type, "Use adaptive, structured formatting.")

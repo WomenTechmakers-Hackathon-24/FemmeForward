@@ -3,104 +3,77 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import List, Dict, Set, Optional, Any
 from firebase_admin import firestore
-
-
+from PromptGenerator import DifficultyLevel, ContentTag
 @dataclass
 class UserProgress:
-    user_id: str
-    completed_quizzes: List[str]
-    completed_lessons: List[str]
-    topic_scores: Dict[str, float]
-    streak_days: int
-    last_activity: datetime
-    badges: Set[str]
-    total_points: int
-    difficulty_levels: Dict[str, int]  # Topic to max difficulty level mapping
-
+    quiz_scores: List[float]
+    completed_topics: List[str]
+    current_difficulty: DifficultyLevel
+    strengths: List[ContentTag]
+    areas_for_improvement: List[ContentTag]
+    engagement_metrics: Dict[ContentTag, float]
 
 class ProgressTracker:
     def __init__(self):
-        self.user_progress: Dict[str, UserProgress] = {}
-        self.badges = {
-            "QUICK_LEARNER": "Complete 5 quizzes with >80% score",
-            "CONSISTENT_LEARNER": "7-day streak",
-            "TOPIC_MASTER": "Complete all difficulty levels in a topic",
-            "KNOWLEDGE_SEEKER": "Complete 10 lessons",
-            "QUIZ_CHAMPION": "Perfect score in advanced quiz"
+        self.topic_prerequisites = {
+            ContentTag.REPRODUCTIVE_HEALTH: [ContentTag.GENERAL_WELLNESS],
+            ContentTag.MENSTRUAL_HEALTH: [ContentTag.REPRODUCTIVE_HEALTH],
+            ContentTag.HORMONAL_HEALTH: [ContentTag.REPRODUCTIVE_HEALTH],
+            ContentTag.SEXUAL_HEALTH: [ContentTag.REPRODUCTIVE_HEALTH],
+            ContentTag.PREGNANCY: [ContentTag.REPRODUCTIVE_HEALTH, ContentTag.HORMONAL_HEALTH],
         }
-        self.db = firestore.client()
-
-    def update_progress(
-        self, 
-        user_id: str, 
-        activity_type: str, 
-        content_id: str, 
-        score: Optional[float] = None
-    ) -> Dict[str, Any]:
-        if user_id not in self.user_progress:
-            self.user_progress[user_id] = UserProgress(
-                user_id=user_id,
-                completed_quizzes=[],
-                completed_lessons=[],
-                topic_scores={},
-                streak_days=0,
-                last_activity=datetime.now(),
-                badges=set(),
-                total_points=0,
-                difficulty_levels=defaultdict(int)
-            )
-
-        progress = self.user_progress[user_id]
         
-        # Update activity records
-        if activity_type == "quiz":
-            progress.completed_quizzes.append(content_id)
-            if score is not None:
-                progress.topic_scores[content_id] = score
-                progress.total_points += int(score * 100)
-        elif activity_type == "lesson":
-            progress.completed_lessons.append(content_id)
-            progress.total_points += 50
+        self.difficulty_thresholds = {
+            DifficultyLevel.BEGINNER: 70,
+            DifficultyLevel.INTERMEDIATE: 80,
+            DifficultyLevel.ADVANCED: 90
+        }
 
-        # Update streak
-        last_activity = progress.last_activity
-        if datetime.now() - last_activity <= timedelta(days=1):
-            progress.streak_days += 1
+    def analyze_user_progress(self, user_progress: UserProgress) -> Dict:
+        """Analyze user progress to determine content adjustments."""
+        avg_score = sum(user_progress.quiz_scores[-3:]) / len(user_progress.quiz_scores[-3:]) \
+            if user_progress.quiz_scores else 0
+        
+        content_adjustments = {
+            'depth_level': self._calculate_depth_level(avg_score),
+            'focus_areas': self._identify_focus_areas(user_progress),
+            'recommended_tags': self._get_recommended_tags(user_progress),
+            'complexity_adjustment': self._determine_complexity(avg_score, user_progress.current_difficulty)
+        }
+        
+        return content_adjustments
+
+    def _calculate_depth_level(self, avg_score: float) -> str:
+        if avg_score >= 90:
+            return "deep_dive"
+        elif avg_score >= 75:
+            return "comprehensive"
         else:
-            progress.streak_days = 1
-        progress.last_activity = datetime.now()
+            return "foundational"
 
-        # Check and award badges
-        new_badges = self._check_badges(progress)
-        
-        # Update difficulty levels
-        if activity_type == "quiz" and score == 1.0:
-            progress.difficulty_levels[content_id] += 1
-        
-        # Store progress in firestore
-        progress_ref = self.db.collection('user_progress').document(user_id)
-        progress_ref.set(progress.__dict__)
+    def _identify_focus_areas(self, user_progress: UserProgress) -> List[str]:
+        """Identify areas needing more focus based on engagement and performance."""
+        focus_areas = []
+        for tag, engagement in user_progress.engagement_metrics.items():
+            if tag in user_progress.areas_for_improvement or engagement < 0.6:
+                focus_areas.append(tag)
+        return focus_areas
 
-        return progress.__dict__
+    def _get_recommended_tags(self, user_progress: UserProgress) -> List[ContentTag]:
+        """Get recommended tags based on completed topics and prerequisites."""
+        available_tags = set(ContentTag)
+        for completed in user_progress.completed_topics:
+            prereqs = self.topic_prerequisites.get(ContentTag(completed), [])
+            if all(prereq in user_progress.completed_topics for prereq in prereqs):
+                available_tags.add(ContentTag(completed))
+        return list(available_tags)
 
-    def get_user_progress(self, user_id: str) -> Optional[UserProgress]:
-        return self.user_progress.get(user_id)
-
-
-    def _check_badges(self, progress: UserProgress) -> Set[str]:
-        new_badges = set()
+    def _determine_complexity(self, avg_score: float, current_difficulty: DifficultyLevel) -> Dict:
+        """Determine content complexity adjustments."""
+        threshold = self.difficulty_thresholds[current_difficulty]
         
-        if len([s for s in progress.topic_scores.values() if s > 0.8]) >= 5:
-            new_badges.add("QUICK_LEARNER")
-        
-        if progress.streak_days >= 7:
-            new_badges.add("CONSISTENT_LEARNER")
-        
-        if len(progress.completed_lessons) >= 10:
-            new_badges.add("KNOWLEDGE_SEEKER")
-        
-        if any(score == 1.0 for score in progress.topic_scores.values()):
-            new_badges.add("QUIZ_CHAMPION")
-        
-        progress.badges.update(new_badges)
-        return new_badges
+        return {
+            'should_increase': avg_score > threshold,
+            'should_decrease': avg_score < threshold - 15,
+            'adjustment_factor': (avg_score - threshold) / 100
+        }
