@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 # Add the src folder to the system path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 from ContentGenerator import ContentGenerator
+from ProgressTracker import ProgressTracker
 
 app = Flask(__name__)
 # Configure CORS
@@ -165,87 +166,37 @@ def update_profile(current_user):
 def generate_quiz(current_user):
     data = request.json
     content_generator = ContentGenerator()
-    
+    progress_tracker = ProgressTracker()
+
     # Add user's difficulty level if not specified in request
     if 'difficulty' not in data:
         data['difficulty'] = current_user.get('difficulty_level', 'beginner')
     
+    # Get user progress for content generation
+    user_progress = progress_tracker.get_user_progress(current_user['email'])
+
     quiz = content_generator.generate_quiz(
         topic=data['topic'],
         tags=data['tags'],
         age_group=data['age_group'],
         difficulty=data['difficulty'],
-        num_questions=data['num_questions']
+        user_progress=user_progress
     )
     
     quiz_list = content_generator.store_quiz(quiz)
-    
-    # Store quiz attempt in user's history
-    quiz_history_ref = db.collection('quiz_history').document()
-    quiz_history_ref.set({
-        'user_email': current_user['email'],
-        'quiz_id': quiz_list['id'],
-        'started_at': firestore.SERVER_TIMESTAMP,
-        'completed': False,
-        'score': None
-    })
     
     return jsonify(quiz_list), 201
 
 @app.route('/content', methods=['GET'])
 @token_required
 def get_personalized_content(current_user):
+    if current_user['interests'] == []:
+        content_query = db.collection('content').limit(5)
     content_query = db.collection('content').where('tags', 'array_contains_any', current_user['interests'])\
         .where('difficulty_level', '==', current_user['difficulty_level']).limit(5)
     content = [doc.to_dict() for doc in content_query.stream()]
     return jsonify(content), 200
 
-@app.route('/progress', methods=['POST'])
-@token_required
-def update_progress(current_user):
-    data = request.json
-    progress_ref = db.collection('user_progress').document(f"{current_user['email']}_{data['content_id']}")
-    
-    progress_data = {
-        'user_email': current_user['email'],
-        'content_id': data['content_id'],
-        'completed': data['completed'],
-        'score': data.get('score'),
-        'last_accessed': firestore.SERVER_TIMESTAMP
-    }
-    
-    progress_ref.set(progress_data, merge=True)
-    
-    # Update user's achievements if applicable
-    if data.get('completed') and data.get('score', 0) > 80:
-        user_ref = db.collection('users').document(current_user['email'])
-        user_ref.update({
-            'achievements': firestore.ArrayUnion(['high_scorer'])
-        })
-    
-    return jsonify({"message": "Progress updated successfully"}), 200
-
-@app.route('/user/<string:user_email>/stats', methods=['GET'])
-@token_required
-def get_user_stats(current_user, user_email):
-    if current_user['email'] != user_email:
-        return jsonify({"error": "Unauthorized"}), 403
-    
-    progress_query = db.collection('user_progress').where('user_email', '==', user_email)
-    progress_docs = progress_query.stream()
-    
-    completed_content = sum(1 for doc in progress_docs if doc.to_dict()['completed'])
-    total_content = db.collection('content').count().get()[0][0].value
-    
-    scores = [doc.to_dict()['score'] for doc in progress_docs if 'score' in doc.to_dict()]
-    avg_score = sum(scores) / len(scores) if scores else 0
-    
-    return jsonify({
-        "total_content": total_content,
-        "completed_content": completed_content,
-        "completion_rate": completed_content / total_content if total_content > 0 else 0,
-        "average_score": round(avg_score, 2)
-    }), 200
 
 @app.route('/quiz/start', methods=['POST'])
 @token_required
@@ -297,7 +248,7 @@ def submit_answer(current_user):
         return jsonify({'error': 'Quiz already completed'}), 400
     
     # Get the quiz to check the correct answer
-    quiz_ref = db.collection('quizzes').document(attempt_data['quiz_id'])
+    quiz_ref = db.collection('content').document(attempt_data['quiz_id'])
     quiz = quiz_ref.get()
     
     if not quiz.exists:
@@ -360,19 +311,12 @@ def complete_quiz(current_user):
     attempt_ref.update(completion_data)
     
     # Update user's progress in the learning path
-    learning_path_ref = db.collection('learning_paths').document(current_user['email'])
-    learning_path_ref.update({
-        'completed_quizzes': firestore.ArrayUnion([attempt_data['quiz_id']]),
-        'total_quizzes_taken': firestore.Increment(1),
-        'total_score': firestore.Increment(score)
-    })
-    
-    # Update user's achievements if applicable
-    if score >= 80:
-        user_ref = db.collection('users').document(current_user['email'])
-        user_ref.update({
-            'achievements': firestore.ArrayUnion(['quiz_master'])
-        })
+    progress_tracker = ProgressTracker()
+    progress_tracker.update_user_progress(
+        user_id=current_user['email'],
+        quiz_score=score,
+        completed_topic=attempt_data['quiz_id']
+    )
     
     return jsonify({
         'status': 'completed',
@@ -380,28 +324,6 @@ def complete_quiz(current_user):
         'correct_answers': correct_answers,
         'total_questions': total_questions,
         'completed_at': datetime.now().isoformat()
-    }), 200
-
-@app.route('/quiz/progress/<string:attempt_id>', methods=['GET'])
-@token_required
-def get_quiz_progress(current_user, attempt_id):
-    attempt_ref = db.collection('quiz_attempts').document(attempt_id)
-    attempt = attempt_ref.get()
-    
-    if not attempt.exists:
-        return jsonify({'error': 'Quiz attempt not found'}), 404
-    
-    attempt_data = attempt.to_dict()
-    if attempt_data['user_email'] != current_user['email']:
-        return jsonify({'error': 'Unauthorized'}), 403
-    
-    return jsonify({
-        'status': attempt_data['status'],
-        'current_question': attempt_data['current_question'],
-        'answers_submitted': len(attempt_data['answers']),
-        'score': attempt_data.get('score', 0),
-        'started_at': attempt_data['started_at'],
-        'completed_at': attempt_data.get('completed_at')
     }), 200
 
 @app.route('/user/quiz-history', methods=['GET'])

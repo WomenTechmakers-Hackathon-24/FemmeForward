@@ -86,7 +86,7 @@ class PromptGenerator:
         9. Confidence-building elements
         10. Next steps guidance
 
-        Format: {self._get_enhanced_format_instructions(content_type, adjustments)}
+        Format: {self._get_enhanced_format_instructions(content_type)}
         """
 
     def _get_enhanced_format_instructions(self, content_type: str) -> str:
@@ -103,12 +103,7 @@ class PromptGenerator:
                         "options": ["A) option1", "B) option2", "C) option3", "D) option4"],
                         "correct_answer": "correct_option",
                         "explanation": "detailed_explanation",
-                        "learning_point": "key_takeaway",
-                        "hints": ["hint1", "hint2"],
-                        "follow_up_questions": ["question1", "question2"],
-                        "related_topics": ["topic1", "topic2"],
-                        "confidence_check": "confidence_question",
-                        "misconception_address": "common_misconception_explanation"
+                        "learning_point": "key_takeaway"
                     }
                 ],
                 "adaptive_elements": {
@@ -116,11 +111,6 @@ class PromptGenerator:
                     "topic_relationships": ["related_topics"],
                     "prerequisite_concepts": ["prerequisites"],
                     "reinforcement_points": ["points_to_reinforce"]
-                },
-                "performance_metrics": {
-                    "target_understanding_level": "target_level",
-                    "minimum_passing_score": "min_score",
-                    "mastery_criteria": "mastery_definition"
                 }
             }
             """,

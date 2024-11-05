@@ -21,9 +21,6 @@ class QuizQuestion:
 class QuizMetadata:
     topic: str
     difficulty: str
-    target_understanding_level: str
-    minimum_passing_score: float
-    mastery_criteria: str
     adaptive_elements: Dict[str, Any]
 
 @dataclass
@@ -31,7 +28,6 @@ class ParsedQuiz:
     questions: List[QuizQuestion]
     metadata: QuizMetadata
     total_points: int
-    estimated_duration: int
     prerequisites: List[str]
     learning_objectives: List[str]
 
@@ -112,7 +108,6 @@ class ContentGenerator:
             
             # Calculate quiz metrics
             total_points = len(parsed_questions)
-            estimated_duration = self._calculate_estimated_duration(parsed_questions)
             
             # Extract prerequisites and learning objectives
             prerequisites = self._extract_prerequisites(quiz_data)
@@ -122,7 +117,6 @@ class ContentGenerator:
                 questions=parsed_questions,
                 metadata=metadata,
                 total_points=total_points,
-                estimated_duration=estimated_duration,
                 prerequisites=prerequisites,
                 learning_objectives=learning_objectives
             )
@@ -139,7 +133,6 @@ class ContentGenerator:
         question_difficulties: List[str]
     ) -> QuizMetadata:
         """Parse and validate quiz metadata."""
-        metadata = quiz_data.get('performance_metrics', {})
         adaptive_elements = quiz_data.get('adaptive_elements', {})
         
         # Determine overall difficulty based on question difficulties
@@ -148,36 +141,8 @@ class ContentGenerator:
         return QuizMetadata(
             topic=topic,
             difficulty=difficulty,
-            target_understanding_level=metadata.get('target_understanding_level', 'proficient'),
-            minimum_passing_score=float(metadata.get('minimum_passing_score', 70)),
-            mastery_criteria=metadata.get('mastery_criteria', 'standard'),
             adaptive_elements=adaptive_elements
         )
-
-    def _calculate_estimated_duration(self, questions: List[QuizQuestion]) -> int:
-        """Calculate estimated duration in minutes based on question complexity."""
-        base_time_per_question = 2  # minutes
-        total_time = 0
-        
-        for question in questions:
-            # Adjust time based on difficulty
-            difficulty_multiplier = {
-                'beginner': 0.8,
-                'intermediate': 1.0,
-                'advanced': 1.2
-            }.get(question.difficulty_level.lower(), 1.0)
-            
-            # Add time for additional elements
-            additional_time = (
-                (len(question.hints or []) * 0.5) +  # 30 seconds per hint
-                (len(question.follow_up_questions or []) * 1) +  # 1 minute per follow-up
-                (2 if question.misconception_address else 0)  # 2 minutes for misconception
-            )
-            
-            question_time = (base_time_per_question * difficulty_multiplier) + additional_time
-            total_time += question_time
-            
-        return round(total_time)
 
     def _extract_prerequisites(self, quiz_data: Dict) -> List[str]:
         """Extract prerequisites from quiz data."""
