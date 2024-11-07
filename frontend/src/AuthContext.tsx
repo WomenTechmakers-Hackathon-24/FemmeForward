@@ -9,7 +9,8 @@ import {
 import {
   setPersistence,
   browserLocalPersistence,
-  browserSessionPersistence
+  browserSessionPersistence,
+  getAuth
 } from 'firebase/auth';
 import { UserData, LoadingState } from './types/auth';
 import axios from 'axios';
@@ -51,12 +52,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const checkUserRegistration = async (user: User, retries = 3) => {
     setLoadingStates(prev => ({ ...prev, profileCheck: true }));
-  
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      console.error('Error checking user registration:', error);
+      setError('Error connecting to the server.');
+      setGoogleUser(null);
+      setUserData(null);
+      return;
+    }
+    const firebaseIdToken = await currentUser.getIdToken();
+
     for (let i = 0; i < retries; i++) {
       try {
-        const response = await api.get(`/profile?email=${user.email}`);
-        setUserData(response.data);
-        setError(null);
+        const response = await api.post(`/verify-token`, {
+          token: firebaseIdToken
+        });
+        setUserData(response.data.user);
+        setError(null); 
         setLoadingStates(prev => ({ ...prev, profileCheck: false }));
         return;
       } catch (error) {

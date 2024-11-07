@@ -4,7 +4,7 @@ import { useAuth, AuthProvider } from './AuthContext';
 import Homepage from './Homepage';
 import Index from './Index';
 import Registration from './components/Registration';
-import LoadingSpinner from './components/LoadingSpinner';
+import LoadingSpinner from './components/ui/LoadingSpinner';
 
 const App: React.FC = () => {
   const { googleUser, userData, loadingStates, error } = useAuth();
