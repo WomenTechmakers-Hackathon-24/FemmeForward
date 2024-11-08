@@ -88,21 +88,36 @@ const Quiz: React.FC<QuizProps> = ({ quizData }) => {
               </div>
             </>
           ) : (
-                <div>
-                <h2 className="text-2xl font-semibold mb-4">Quiz Results</h2>
-                <p className="mb-4">You scored {score} out of {quizData.questions.length}.</p>
-                {quizData.questions.map((question, index) => (
-                <div key={index} className="mb-4">
-                    <p className="font-medium">{question.question}</p>
-                    <p>
-                    Your answer: <strong>{selectedAnswers[index] || 'No answer'}</strong>
-                    </p>
-                    <p>
-                    Correct answer: <strong>{question.correct_answer}</strong>
-                    </p>
-                </div>
-                ))}
-            </div>
+            <div style={{ paddingTop: '750px' }}>
+            <h2 className="text-2xl font-semibold mb-4">Quiz Results</h2>
+            <p className="mb-4">You scored {score} out of {quizData.questions.length}.</p>
+            {quizData.questions.map((question, index) => {
+                const isCorrect = selectedAnswers[index]?.slice(0,2) === question.correct_answer;
+                return (
+                    <div key={index} className="mb-6">
+                    <h3 className="font-medium">{question.question}</h3>
+                    <ul>
+                        {question.options.map((option, i) => {
+                        const isSelected = option === selectedAnswers[index];
+                        const isWrongSelection = isSelected && !isCorrect;
+
+                        return (
+                            <li
+                            key={i}
+                            className={`p-2 ${option.slice(0,2) === question.correct_answer ? 'font-bold text-green-600' : isWrongSelection ? 'italic text-red-600' : ''}`}
+                            >
+                            {option}
+                            </li>
+                        );
+                        })}
+                    </ul>
+                    {!isCorrect && (
+                        <p className="mt-2 italic text-gray-700">{question.explanation}</p>
+                    )}
+                    </div>
+                );
+})}
+          </div>
           )}
         </div>
       );

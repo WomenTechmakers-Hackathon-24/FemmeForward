@@ -4,10 +4,15 @@ import { useAuth } from './AuthContext.tsx';
 import api from './api/axios.tsx';
 import QuizComponent from './components/Quiz/QuizComponent.tsx';
 import LoadingSpinner from './components/ui/LoadingSpinner.tsx';
+import TaskbarComponent from './components/TaskbarComponent.tsx';
+import TopicComponent from './components/Topic/TopicComponent.tsx';
+import ProfileComponent from './components/ProfileComponent.tsx';
 
 const Homepage: React.FC = () => {
-  const { userData, logout } = useAuth();
+  const { userData } = useAuth();
   const [loading, setLoading] = useState(false);  // State for loading state
+  const [currentView, setCurrentView] = useState<'topics' | 'quiz' | 'profile' | null>('topics');
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(null); // Track selected topic for quiz
 
   const GetContent = async () => {
     setLoading(true);
@@ -30,17 +35,36 @@ const Homepage: React.FC = () => {
     return <LoadingSpinner />;
   }
   
+
+  // Handlers to switch views
+  const handleTopicClick = (topic: string) => {
+    setSelectedTopic(topic);
+    setCurrentView('quiz');
+  };
+
+  const handleProfileClick = () => {
+    setCurrentView('profile');
+  };
+
+  const handleBack = () => {
+    setCurrentView('topics');
+    setSelectedTopic(null);
+  };
+
   return (
     <div>
-      <div className="taskbar bg-blue-500 text-white p-4 flex justify-between items-center w-full fixed top-0 left-0">
-        <div className="text-lg font-bold">Empowering Women</div> {/* Logo or app name on the left */}
-        <div className="flex items-center space-x-4"> {/* Added space between elements */}
-          <h1 className="text-lg">Welcome, {userData.name}!</h1>
-          <button className="button bg-red-500 hover:bg-red-600 text-white p-2 rounded" onClick={logout}>Log out</button>
-        </div>
-      </div>
-      <div className="mt-16"> {/* Added top margin to avoid overlap */}
-        <QuizComponent />
+      <TaskbarComponent onBack={handleBack} onProfileClick={handleProfileClick}  />
+      <div className="mt-32"> {/* Added top margin to avoid overlap */}
+      <div>
+      {/* Conditional rendering of views */}
+      {currentView === 'topics' && (
+        <TopicComponent onTopicClick={handleTopicClick} />
+      )}
+      {currentView === 'quiz' && selectedTopic && (
+        <QuizComponent topic={selectedTopic} />
+      )}
+      {currentView === 'profile' && <ProfileComponent />}
+    </div>
       </div>
     </div>
   );

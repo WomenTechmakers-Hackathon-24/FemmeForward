@@ -6,7 +6,11 @@ import Quiz from './Quiz';
 import { mockQuizData } from './MockQuiz';
 import LoadingSpinner from '../ui/LoadingSpinner';
 
-const QuizComponent: React.FC = () => {
+interface QuizComponentProps {
+  topic: string; // The title of the topic selected for the quiz
+}
+
+const QuizComponent: React.FC<QuizComponentProps> = ({topic}) => {
   const [quizData, setQuizData] = useState<QuizData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -15,7 +19,7 @@ const QuizComponent: React.FC = () => {
       setIsLoading(true);
       try {
         const response = await api.post(`/generate_quiz`, {
-          //topic: topic, 
+          topic: topic, 
           //tags: tags,
           //age_group: age_group,
           //num_questions: num_questions
