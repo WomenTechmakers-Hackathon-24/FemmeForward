@@ -144,12 +144,12 @@ def verify_token():
         return jsonify({'error': 'Invalid token'}), 401
 
 @app.route('/profile', methods=['GET'])
-@token_required
+#@token_required
 def get_profile(current_user):
     return jsonify(current_user), 200
 
 @app.route('/profile', methods=['PUT'])
-@token_required
+#@token_required
 def update_profile(current_user):
     data = request.json
     user_ref = db.collection('users').document(current_user['email'])
@@ -161,8 +161,14 @@ def update_profile(current_user):
     user_ref.update(update_data)
     return jsonify({'message': 'Profile updated successfully'}), 200
 
+@app.route('/interests', methods=['GET'])
+def list_content_tags():
+    content_generator = ContentGenerator()
+    tags = content_generator.get_content_tags()
+    return jsonify(tags), 200
+
 @app.route('/generate_quiz', methods=['POST'])
-@token_required
+#@token_required
 def generate_quiz(current_user):
     data = request.json
     content_generator = ContentGenerator()
@@ -228,7 +234,7 @@ def start_quiz(current_user):
     }), 201
 
 @app.route('/quiz/submit-answer', methods=['POST'])
-@token_required
+#@token_required
 def submit_answer(current_user):
     data = request.json
     if not all(k in data for k in ['attempt_id', 'question_index', 'answer']):
@@ -279,7 +285,7 @@ def submit_answer(current_user):
     }), 200
 
 @app.route('/quiz/complete', methods=['POST'])
-@token_required
+#@token_required
 def complete_quiz(current_user):
     data = request.json
     if not data.get('attempt_id'):
@@ -327,7 +333,7 @@ def complete_quiz(current_user):
     }), 200
 
 @app.route('/user/quiz-history', methods=['GET'])
-@token_required
+#@token_required
 def get_quiz_history(current_user):
     attempts_query = (db.collection('quiz_attempts')
                      .where('user_email', '==', current_user['email'])

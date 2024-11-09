@@ -42,6 +42,8 @@ class ContentGenerator:
         self.db = firestore.client()
         self.progress_tracker = ProgressTracker()
 
+    def list_content_tags(self):
+        return [tag.value for tag in ContentTag]
 
     def _parse_quiz_response(self, response: str, topic: str) -> ParsedQuiz:
         """
