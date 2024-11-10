@@ -1,31 +1,42 @@
-from datetime import datetime, timedelta
-from collections import defaultdict
 from dataclasses import dataclass
-from typing import List, Dict, Set, Optional, Any
+from typing import List, Dict, Optional
+from enum import Enum
 from firebase_admin import firestore
-from PromptGenerator import DifficultyLevel, ContentTag
+
+class UserDifficulty(Enum):
+    BEGINNER = "beginner"
+    INTERMEDIATE = "intermediate"
+    ADVANCED = "advanced"
 @dataclass
 class UserProgress:
     quiz_scores: List[float]
     completed_topics: List[str]
-    current_difficulty: DifficultyLevel
+    current_difficulty: UserDifficulty
+
+class AgeGroup(Enum):
+    TEEN = "13-19"
+    YOUNG_ADULT = "20-35"
+    ADULT = "36-50"
+    MATURE = "50+"
 
 class ProgressTracker:
     def __init__(self):
-        self.firestore = firestore.client()
-        self.topic_prerequisites = {
-            ContentTag.REPRODUCTIVE_HEALTH: [ContentTag.GENERAL_WELLNESS],
-            ContentTag.MENSTRUAL_HEALTH: [ContentTag.REPRODUCTIVE_HEALTH],
-            ContentTag.HORMONAL_HEALTH: [ContentTag.REPRODUCTIVE_HEALTH],
-            ContentTag.SEXUAL_HEALTH: [ContentTag.REPRODUCTIVE_HEALTH],
-            ContentTag.PREGNANCY: [ContentTag.REPRODUCTIVE_HEALTH, ContentTag.HORMONAL_HEALTH],
-        }
-        
+        self.firestore = firestore.client()   
         self.difficulty_thresholds = {
-            DifficultyLevel.BEGINNER: 70,
-            DifficultyLevel.INTERMEDIATE: 80,
-            DifficultyLevel.ADVANCED: 90
+            UserDifficulty.BEGINNER: 70,
+            UserDifficulty.INTERMEDIATE: 80,
+            UserDifficulty.ADVANCED: 90
         }
+
+    def determine_age_group(self, age: int) -> AgeGroup:
+        if age >= 50:
+            return AgeGroup.MATURE
+        elif age >= 36:
+            return AgeGroup.ADULT
+        elif age >= 20:
+            return AgeGroup.YOUNG_ADULT
+        else:
+            return AgeGroup.TEEN
 
     def get_user_progress(self, user_id: str) -> Optional[UserProgress]:
         """Retrieve user progress from Firestore."""
@@ -36,7 +47,7 @@ class ProgressTracker:
             return UserProgress(
                 quiz_scores=user_data.get('quiz_scores', []),
                 completed_topics=user_data.get('completed_topics', []),
-                current_difficulty=DifficultyLevel(user_data.get('current_difficulty', 'beginner'))
+                current_difficulty=UserDifficulty(user_data.get('difficulty_level', 'beginner'))
             )
         else:
             return None
@@ -48,7 +59,6 @@ class ProgressTracker:
         
         content_adjustments = {
             'depth_level': self._calculate_depth_level(avg_score),
-            'recommended_tags': self._get_recommended_tags(user_progress),
             'complexity_adjustment': self._determine_complexity(avg_score, user_progress.current_difficulty)
         }
         
@@ -80,16 +90,7 @@ class ProgressTracker:
         else:
             return "foundational"
 
-    def _get_recommended_tags(self, user_progress: UserProgress) -> List[ContentTag]:
-        """Get recommended tags based on completed topics and prerequisites."""
-        available_tags = set(ContentTag)
-        for completed in user_progress.completed_topics:
-            prereqs = self.topic_prerequisites.get(ContentTag(completed), [])
-            if all(prereq in user_progress.completed_topics for prereq in prereqs):
-                available_tags.add(ContentTag(completed))
-        return list(available_tags)
-
-    def _determine_complexity(self, avg_score: float, current_difficulty: DifficultyLevel) -> Dict:
+    def _determine_complexity(self, avg_score: float, current_difficulty: UserDifficulty) -> Dict:
         """Determine content complexity adjustments."""
         threshold = self.difficulty_thresholds[current_difficulty]
         

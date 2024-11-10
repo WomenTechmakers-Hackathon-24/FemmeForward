@@ -70,6 +70,7 @@ def token_required(f):
 
 @app.route('/register', methods=['POST'])
 def register_user():
+    progress_tracker = ProgressTracker()
     data = request.json
     required_fields = ['name', 'email', 'birthdate']
     
@@ -77,42 +78,29 @@ def register_user():
         return jsonify({'error': 'Missing required fields'}), 400
     
     user_ref = db.collection('users').document(data['email'])
-    
+
     if user_ref.get().exists:
         return jsonify({"error": "User already exists"}), 400
     
+    # store age group according to birthdate
+    birthdate = datetime.strptime(data['birthdate'], '%Y-%m-%d')
+    age = datetime.now().year - birthdate.year
+
     # Create user profile
     user_profile = {
         'name': data['name'],
         'email': data['email'],
         'birthdate': data['birthdate'],
+        'age_group': progress_tracker.determine_age_group(age),
         'interests': data.get('interests', []),
         'difficulty_level': data.get('difficulty', 'beginner'),
         'created_at': firestore.SERVER_TIMESTAMP,
-        'profile_picture': data.get('profile_picture', ''),
-        'bio': data.get('bio', ''),
         'learning_goals': data.get('learning_goals', []),
-        'completed_courses': [],
-        'achievements': [],
-        'preferences': {
-            'notification_settings': data.get('notification_settings', True),
-            'language': data.get('language', 'en'),
-            'theme': data.get('theme', 'light')
-        }
+        'completed_topics': [],
+        'quiz_scores': []
     }
     
     user_ref.set(user_profile)
-    
-    # Create initial learning path
-    learning_path_ref = db.collection('learning_paths').document(data['email'])
-    learning_path_ref.set({
-        'user_email': data['email'],
-        'current_level': 'beginner',
-        'completed_modules': [],
-        'current_module': None,
-        'progress': 0,
-        'created_at': firestore.SERVER_TIMESTAMP
-    })
     
     return jsonify({"message": "User registered successfully"}), 201
 
@@ -172,29 +160,26 @@ def list_content_tags():
 def generate_quiz(current_user):
     data = request.json
     content_generator = ContentGenerator()
-    progress_tracker = ProgressTracker()
 
     # Add user's difficulty level if not specified in request
     if 'difficulty' not in data:
         data['difficulty'] = current_user.get('difficulty_level', 'beginner')
-    
-    # Get user progress for content generation
-    user_progress = progress_tracker.get_user_progress(current_user['email'])
 
     quiz = content_generator.generate_quiz(
         topic=data['topic'],
         tags=data['tags'],
         age_group=data['age_group'],
         difficulty=data['difficulty'],
-        user_progress=user_progress
+        user_id = current_user['email'],
+        num_questions=data['num_questions']
     )
     
-    quiz_list = content_generator.store_quiz(quiz)
+    quiz_list = content_generator.store_quiz(quiz.questions)
     
     return jsonify(quiz_list), 201
 
 @app.route('/content', methods=['GET'])
-@token_required
+#@token_required
 def get_personalized_content(current_user):
     if current_user['interests'] == []:
         content_query = db.collection('content').limit(5)
@@ -205,7 +190,7 @@ def get_personalized_content(current_user):
 
 
 @app.route('/quiz/start', methods=['POST'])
-@token_required
+#@token_required
 def start_quiz(current_user):
     data = request.json
     if not data.get('quiz_id'):

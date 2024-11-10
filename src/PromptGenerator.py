@@ -1,5 +1,6 @@
 from enum import Enum
-from typing import List, Dict
+from typing import List
+from ProgressTracker import ProgressTracker, AgeGroup
 
 class DifficultyLevel(Enum):
     BEGINNER = "beginner"
@@ -20,22 +21,21 @@ class ContentTag(Enum):
     BODY_IMAGE = "body_image"
     GENERAL_WELLNESS = "general_wellness"
 
-class AgeGroup(Enum):
-    TEEN = "13-19"
-    YOUNG_ADULT = "20-35"
-    ADULT = "36-50"
-    MATURE = "50+"
-
 class PromptGenerator:
+    def __init__(self):
+        self.progress_tracker = ProgressTracker()
+
     def generate_adaptive_content(
         self,
         topic: str,
         tags: List[ContentTag],
         age_group: AgeGroup,
         difficulty: DifficultyLevel,
-        content_type: str,
-        adjustments: Dict
+        user_id: str,
+        num_questions: int
     ) -> str:
+        user_progress = self.progress_tracker.get_user_progress(user_id)
+        adjustments = self.progress_tracker.analyze_user_progress(user_progress)
         age_appropriate_language = {
             AgeGroup.TEEN: "Use friendly, clear language with relatable examples and social media references.",
             AgeGroup.YOUNG_ADULT: "Use straightforward language with practical examples and contemporary references.",
@@ -50,14 +50,13 @@ class PromptGenerator:
         }
 
         return f"""
-        Create a personalized {difficulty.value}-level {content_type} about {topic}
+        Create a personalized {difficulty.value}-level quiz about {topic} with {num_questions} questions
         for {age_group.value} age group.
 
         Content Personalization:
         {age_appropriate_language.get(age_group, "Use clear, appropriate language.")}
         {depth_instructions.get(adjustments['depth_level'], "Adjust depth appropriately.")}
         
-        Focus on these areas: {', '.join(str(area) for area in adjustments['focus_areas'])}
         Complexity Adjustment: {adjustments['complexity_adjustment']['adjustment_factor']}
 
         Content Guidelines:
@@ -86,7 +85,7 @@ class PromptGenerator:
         9. Confidence-building elements
         10. Next steps guidance
 
-        Format: {self._get_enhanced_format_instructions(content_type)}
+        Format: {self._get_enhanced_format_instructions('quiz')}
         """
 
     def _get_enhanced_format_instructions(self, content_type: str) -> str:
@@ -109,7 +108,6 @@ class PromptGenerator:
                 "adaptive_elements": {
                     "difficulty_progression": "progression_path",
                     "topic_relationships": ["related_topics"],
-                    "prerequisite_concepts": ["prerequisites"],
                     "reinforcement_points": ["points_to_reinforce"]
                 }
             }

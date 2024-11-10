@@ -1,12 +1,14 @@
 from dataclasses import dataclass
 import json
+import logging
 from typing import List, Dict, Any
 from PromptGenerator import PromptGenerator, DifficultyLevel, ContentTag, AgeGroup
 from firebase_admin import firestore
 from datetime import timedelta, datetime, timezone
 import google.generativeai as genai
-from ProgressTracker import ProgressTracker, UserProgress
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 @dataclass
 class QuizQuestion:
     question: str
@@ -28,7 +30,6 @@ class ParsedQuiz:
     questions: List[QuizQuestion]
     metadata: QuizMetadata
     total_points: int
-    prerequisites: List[str]
     learning_objectives: List[str]
 
 class QuizParsingError(Exception):
@@ -40,116 +41,54 @@ class ContentGenerator:
         self.model = genai.GenerativeModel('gemini-1.5-flash')
         self.prompt_generator = PromptGenerator()
         self.db = firestore.client()
-        self.progress_tracker = ProgressTracker()
 
     def list_content_tags(self):
         return [tag.value for tag in ContentTag]
+        
+    def _parse_quiz_response(self, response, topic, difficulty) -> ParsedQuiz:
+        parsed_questions = []
+        question_data = json.loads(response)
+        for question in question_data['questions']:            
+            try:
+                quiz_question = QuizQuestion(
+                    question=question['question'],
+                    options=question['options'],
+                    correct_answer=question['correct_answer'],
+                    explanation=question['explanation'],
+                    learning_point=question['learning_point'],
+                    difficulty_level=question['difficulty_level'],
+                    topic_tag=question['topic_tag']
+                )
 
-    def _parse_quiz_response(self, response: str, topic: str) -> ParsedQuiz:
-        """
-        Parse and validate the quiz response from Gemini.
-        """
-        try:
-            # Parse the JSON response
-            quiz_data = json.loads(response)
-            
-            # Validate overall structure
-            if not isinstance(quiz_data, dict) or 'questions' not in quiz_data:
-                raise QuizParsingError("Invalid quiz format: missing 'questions' array")
-                
-            parsed_questions = []
-            question_difficulties = []
-            
-            # Process each question
-            for idx, question in enumerate(quiz_data['questions'], 1):
-                try:
-                    # Validate required fields
-                    required_fields = ['question', 'options', 'correct_answer', 
-                                    'explanation', 'learning_point', 'difficulty_level', 
-                                    'topic_tag']
-                    
-                    missing_fields = [field for field in required_fields 
-                                    if field not in question or not question[field]]
-                    
-                    if missing_fields:
-                        raise QuizParsingError(
-                            f"Question {idx}: Missing required fields: {', '.join(missing_fields)}"
-                        )
-                    
-                    # Validate options format
-                    if not isinstance(question['options'], list) or len(question['options']) < 2:
-                        raise QuizParsingError(
-                            f"Question {idx}: Invalid options format"
-                        )
-                    
-                    # Validate correct answer is in options
-                    if question['correct_answer'] not in question['options']:
-                        raise QuizParsingError(
-                            f"Question {idx}: Correct answer not in options"
-                        )
-                    
-                    # Create QuizQuestion object with optional fields
-                    quiz_question = QuizQuestion(
-                        question=question['question'],
-                        options=question['options'],
-                        correct_answer=question['correct_answer'],
-                        explanation=question['explanation'],
-                        learning_point=question['learning_point'],
-                        difficulty_level=question['difficulty_level'],
-                        topic_tag=question['topic_tag']
-                    )
-                    
-                    parsed_questions.append(quiz_question)
-                    question_difficulties.append(question['difficulty_level'])
-                    
-                except KeyError as e:
-                    raise QuizParsingError(f"Question {idx}: Missing required field {e}")
-                    
-            # Parse metadata
-            metadata = self._parse_quiz_metadata(quiz_data, topic, question_difficulties)
-            
-            # Calculate quiz metrics
-            total_points = len(parsed_questions)
-            
-            # Extract prerequisites and learning objectives
-            prerequisites = self._extract_prerequisites(quiz_data)
-            learning_objectives = self._extract_learning_objectives(quiz_data)
-            
-            return ParsedQuiz(
-                questions=parsed_questions,
-                metadata=metadata,
-                total_points=total_points,
-                prerequisites=prerequisites,
-                learning_objectives=learning_objectives
-            )
-            
-        except json.JSONDecodeError as e:
-            raise QuizParsingError(f"Invalid JSON format: {e}")
-        except Exception as e:
-            raise QuizParsingError(f"Error parsing quiz: {e}")
+                parsed_questions.append(quiz_question)
 
+            except json.JSONDecodeError as e:
+                print(f"Error parsing question JSON: {e}")
+                continue
+
+        metadata = self._parse_quiz_metadata(question_data, topic, difficulty)
+        learning_objectives = self._extract_learning_objectives(question_data)
+
+        return ParsedQuiz(
+            questions=parsed_questions,
+            metadata=metadata,
+            total_points=len(parsed_questions),
+            learning_objectives=learning_objectives
+        )
+    
     def _parse_quiz_metadata(
         self, 
         quiz_data: Dict, 
         topic: str, 
-        question_difficulties: List[str]
+        difficulty: DifficultyLevel
     ) -> QuizMetadata:
         """Parse and validate quiz metadata."""
-        adaptive_elements = quiz_data.get('adaptive_elements', {})
-        
-        # Determine overall difficulty based on question difficulties
-        difficulty = max(set(question_difficulties), key=question_difficulties.count)
         
         return QuizMetadata(
             topic=topic,
-            difficulty=difficulty,
-            adaptive_elements=adaptive_elements
+            difficulty=difficulty.value,
+            adaptive_elements=quiz_data.get('adaptive_elements', {})
         )
-
-    def _extract_prerequisites(self, quiz_data: Dict) -> List[str]:
-        """Extract prerequisites from quiz data."""
-        prereqs = quiz_data.get('adaptive_elements', {}).get('prerequisite_concepts', [])
-        return [str(prereq) for prereq in prereqs]
 
     def _extract_learning_objectives(self, quiz_data: Dict) -> List[str]:
         """Extract learning objectives from quiz data."""
@@ -164,25 +103,27 @@ class ContentGenerator:
         # Remove duplicates while preserving order
         return list(dict.fromkeys(objectives))
 
-    async def generate_quiz(
+    def generate_quiz(
         self,
         topic: str,
         tags: List[ContentTag],
         age_group: AgeGroup,
         difficulty: DifficultyLevel,
-        user_progress: UserProgress
+        user_id: str,
+        num_questions: int
     ) -> ParsedQuiz:
         """Generate and parse a quiz in one step."""
-        content = await self.prompt_generator.generate_adaptive_content(
+        prompt = self.prompt_generator.generate_adaptive_content(
             topic=topic,
             tags=tags,
             age_group=age_group,
             difficulty=difficulty,
-            content_type="quiz",
-            user_progress=user_progress
+            user_id=user_id,
+            num_questions=num_questions
         )
-        
-        return self._parse_quiz_response(json.dumps(content['content']), topic)
+        response = self.model.generate_content(prompt, generation_config = {"response_mime_type": 
+                                                                           "application/json"})
+        return self._parse_quiz_response(response.text, topic, difficulty)
 
     def _generate_quiz_id(self):
         # hash the current timestamp to generate a unique ID
@@ -215,35 +156,3 @@ class ContentGenerator:
                 return None
         else:
             return None
-
-# def main():
-#     cred = credentials.Certificate("empowerwomen-fbbda-firebase-adminsdk-96bfo-3ab2cc60b5.json")
-#     firebase_admin.initialize_app(cred)
-
-#     content_generator = ContentGenerator()
-#     topic = "Female Nutrition Basics"
-#     tags = [ContentTag.NUTRITION]
-#     age_group = AgeGroup.TEEN
-#     difficulty = DifficultyLevel.BEGINNER
-#     num_questions = 3
-
-#     quiz = content_generator.generate_quiz(
-#         topic=topic,
-#         tags=tags,
-#         age_group=age_group,
-#         difficulty=difficulty,
-#         num_questions=num_questions
-#     )
-
-#     quiz_list = content_generator.store_quiz(quiz)
-#     print("Stored quizzes:", quiz_list)
-
-#     for quiz_id in quiz_list:
-#         quiz_data = content_generator.get_quiz(quiz_id)
-#         if quiz_data:
-#             print("Retrieved quiz:", quiz_data)
-#         else:
-#             print("Quiz not found or expired.")
-
-# if __name__ == "__main__":
-#     main()
