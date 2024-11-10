@@ -156,6 +156,7 @@ def list_content_tags():
     return jsonify(tags), 200
 
 @app.route('/topics', methods=['GET'])
+@token_required
 def get_personalized_topics(current_user):
     progress_tracker = ProgressTracker()
     topics = progress_tracker.get_user_topics(current_user['email'])
