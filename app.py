@@ -132,12 +132,12 @@ def verify_token():
         return jsonify({'error': 'Invalid token'}), 401
 
 @app.route('/profile', methods=['GET'])
-#@token_required
+@token_required
 def get_profile(current_user):
     return jsonify(current_user), 200
 
 @app.route('/profile', methods=['PUT'])
-#@token_required
+@token_required
 def update_profile(current_user):
     data = request.json
     user_ref = db.collection('users').document(current_user['email'])
@@ -162,7 +162,7 @@ def get_personalized_topics(current_user):
     return jsonify(topics), 200
 
 @app.route('/generate_quiz', methods=['POST'])
-#@token_required
+@token_required
 def generate_quiz(current_user):
     data = request.json
     content_generator = ContentGenerator()
@@ -185,7 +185,7 @@ def generate_quiz(current_user):
     return jsonify(quiz_list), 201
 
 @app.route('/content', methods=['GET'])
-#@token_required
+@token_required
 def get_personalized_content(current_user):
     if current_user['interests'] == []:
         content_query = db.collection('content').limit(5)
@@ -196,7 +196,7 @@ def get_personalized_content(current_user):
 
 
 @app.route('/quiz/start', methods=['POST'])
-#@token_required
+@token_required
 def start_quiz(current_user):
     data = request.json
     if not data.get('quiz_id'):
@@ -225,7 +225,7 @@ def start_quiz(current_user):
     }), 201
 
 @app.route('/quiz/submit-answer', methods=['POST'])
-#@token_required
+@token_required
 def submit_answer(current_user):
     data = request.json
     if not all(k in data for k in ['attempt_id', 'question_index', 'answer']):
@@ -276,7 +276,7 @@ def submit_answer(current_user):
     }), 200
 
 @app.route('/quiz/complete', methods=['POST'])
-#@token_required
+@token_required
 def complete_quiz(current_user):
     data = request.json
     if not data.get('attempt_id'):
@@ -324,7 +324,7 @@ def complete_quiz(current_user):
     }), 200
 
 @app.route('/user/quiz-history', methods=['GET'])
-#@token_required
+@token_required
 def get_quiz_history(current_user):
     attempts_query = (db.collection('quiz_attempts')
                      .where('user_email', '==', current_user['email'])
