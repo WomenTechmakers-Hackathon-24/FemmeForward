@@ -8,12 +8,12 @@ class DifficultyLevel(Enum):
     ADVANCED = "advanced"
 
 class ContentTag(Enum):
-    REPRODUCTIVE_HEALTH = "reproductive_health"
-    MENSTRUAL_HEALTH = "menstrual_health"
-    MENTAL_HEALTH = "mental_health"
-    PHYSICAL_HEALTH = "physical_health"
-    GENERAL_WELLNESS = "general_wellness"
-    EMOTIONAL_HEALTH = "emotional_health"
+    REPRODUCTIVE_HEALTH = "reproductive health"
+    MENSTRUAL_HEALTH = "menstrual health"
+    MENTAL_HEALTH = "mental health"
+    PHYSICAL_HEALTH = "physical health"
+    GENERAL_WELLNESS = "general wellness"
+    EMOTIONAL_HEALTH = "emotional health"
 
 class PromptGenerator:
     def __init__(self):

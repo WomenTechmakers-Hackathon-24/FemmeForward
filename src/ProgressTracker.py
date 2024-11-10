@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from typing import List, Dict, Optional
 from enum import Enum
-from firebase_admin import firestore
+from firebase_admin import firestore, credentials
+import firebase_admin
 
 class UserDifficulty(Enum):
     BEGINNER = "beginner"
@@ -176,3 +177,17 @@ class ProgressTracker:
             'should_decrease': avg_score < threshold - 15,
             'adjustment_factor': (avg_score - threshold) / 100
         }
+    
+    def _update_difficulty_level(self, quiz_scores: List[float]) -> UserDifficulty:
+        """Update user difficulty level based on recent quiz scores."""
+        if not quiz_scores:
+            return UserDifficulty.BEGINNER.value
+        
+        avg_score = sum(quiz_scores) / len(quiz_scores)
+        
+        if avg_score >= 90:
+            return UserDifficulty.ADVANCED.value
+        elif avg_score >= 80:
+            return UserDifficulty.INTERMEDIATE.value
+        else:
+            return UserDifficulty.BEGINNER.value

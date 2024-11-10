@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import json
 import logging
+import uuid
 from typing import List, Dict, Any
 from PromptGenerator import PromptGenerator, DifficultyLevel, ContentTag, AgeGroup
 from firebase_admin import firestore
@@ -125,15 +126,11 @@ class ContentGenerator:
                                                                            "application/json"})
         return self._parse_quiz_response(response.text, topic, difficulty)
 
-    def _generate_quiz_id(self):
-        # hash the current timestamp to generate a unique ID
-        return str(hash(datetime.now()))
-
     def store_quiz(self, quiz_data, expiration_seconds=3600):
         quiz_list = []
         for question in quiz_data:
             question = question.__dict__
-            quiz_id = self._generate_quiz_id()
+            quiz_id = str(uuid.uuid4())
             quiz_ref = self.db.collection('content').document(quiz_id)
             # Set TTL using a server timestamp and expiration duration
             expiration_time = datetime.now(timezone.utc) + timedelta(seconds=expiration_seconds)
