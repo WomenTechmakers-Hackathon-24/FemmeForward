@@ -109,7 +109,7 @@ class ProgressTracker:
 
     def get_user_topics(self, user_id: str) -> List[str]:
         """Get personalized topics based on user interests and profile."""
-        user_ref = self.db.collection('users').document(user_id)
+        user_ref = self.firestore.collection('users').document(user_id)
         user_data = user_ref.get().to_dict()
         
         if not user_data:
