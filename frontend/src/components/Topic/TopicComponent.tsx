@@ -10,7 +10,6 @@ import { defaultColor, tagColorMap } from '@/types/tags';
 interface TopicComponentProps {
     onTopicClick: (topic: string) => void;
 };
-  
 
 const TopicComponent: React.FC<TopicComponentProps> = ({ onTopicClick }) => {
   const [topics, setTopics] = useState<TopicList | null>(null);
