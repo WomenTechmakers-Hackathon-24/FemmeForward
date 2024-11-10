@@ -19,6 +19,31 @@ class AgeGroup(Enum):
     ADULT = "36-50"
     MATURE = "50+"
 
+class Topic(Enum):
+    fertility = "Fertility"
+    contraception = "Contraception"
+    period_care = "Period Care"
+    pms = "PMS Relief"
+    mental_health = "Mental Health"
+    balanced_diet = "Balanced Diet"
+    superfoods = "Superfoods"
+    workouts = "Workouts"
+    hormonal_health = "Hormonal Health"
+    sleep = "Sleep Hygiene"
+    stress_management = "Stress Management"
+    mindfulness = "Mindfulness Practices"
+    self_care = "Self-Care"
+    skincare = "Skincare"
+    haircare = "Haircare"
+    bodycare = "Bodycare"
+    sexual_health = "Sexual Health"
+    preventive_care = "Preventive Care"
+    pregnancy = "Pregnancy"
+    puberty = "Puberty"
+    habits = "Healthy Habits"
+    self_esteem = "Self-Esteem"
+    acceptance = "Body Acceptance"
+
 class ProgressTracker:
     def __init__(self):
         self.firestore = firestore.client()   
@@ -30,13 +55,13 @@ class ProgressTracker:
 
     def determine_age_group(self, age: int) -> AgeGroup:
         if age >= 50:
-            return AgeGroup.MATURE
+            return AgeGroup.MATURE.value
         elif age >= 36:
-            return AgeGroup.ADULT
+            return AgeGroup.ADULT.value
         elif age >= 20:
-            return AgeGroup.YOUNG_ADULT
+            return AgeGroup.YOUNG_ADULT.value
         else:
-            return AgeGroup.TEEN
+            return AgeGroup.TEEN.value
 
     def get_user_progress(self, user_id: str) -> Optional[UserProgress]:
         """Retrieve user progress from Firestore."""
@@ -81,6 +106,58 @@ class ProgressTracker:
                 'completed_topics': list(set(completed_topics)),  # Remove duplicates
                 'current_difficulty': self._update_difficulty_level(quiz_scores)
             }, merge=True)
+
+    def get_user_topics(self, user_id: str) -> List[str]:
+        """Get personalized topics based on user interests and profile."""
+        user_ref = self.db.collection('users').document(user_id)
+        user_data = user_ref.get().to_dict()
+        
+        if not user_data:
+            return []
+
+        # Get user interests and age group
+        interests = user_data.get('interests', [])
+        age_group = user_data.get('age_group')
+        
+        # Define topic mapping based on interests
+        interest_topic_mapping = {
+            'reproductive_health': [Topic.fertility, Topic.contraception, Topic.sexual_health],
+            'menstrual_health': [Topic.period_care, Topic.pms, Topic.hormonal_health],
+            'mental_health': [Topic.mental_health, Topic.mindfulness, Topic.stress_management],
+            'physical_health': [Topic.workouts, Topic.balanced_diet, Topic.habits],
+            'general_wellness': [Topic.self_care, Topic.skincare, Topic.bodycare],
+            'emotional_health': [Topic.self_esteem, Topic.acceptance, Topic.mindfulness]
+        }
+
+        # Age group specific restrictions
+        age_restricted_topics = {
+            'TEEN': {
+                'allowed': [Topic.puberty, Topic.self_esteem, Topic.acceptance, Topic.period_care],
+                'restricted': [Topic.fertility, Topic.contraception, Topic.sexual_health]
+            },
+            'YOUNG_ADULT': {
+                'allowed': list(Topic),  # All topics allowed
+                'restricted': []
+            },
+            'ADULT': {
+                'allowed': list(Topic),
+                'restricted': [Topic.puberty]
+            }
+        }
+        # Collect relevant topics based on interests
+        relevant_topics = set()
+        for interest in interests:
+            if interest in interest_topic_mapping:
+                relevant_topics.update(topic.value for topic in interest_topic_mapping[interest])
+
+        # Apply age group restrictions
+        if age_group in age_restricted_topics:
+            allowed_topics = {topic.value for topic in age_restricted_topics[age_group]['allowed']}
+            restricted_topics = {topic.value for topic in age_restricted_topics[age_group]['restricted']}
+            relevant_topics = relevant_topics.intersection(allowed_topics)
+            relevant_topics = relevant_topics - restricted_topics
+
+        return relevant_topics
 
     def _calculate_depth_level(self, avg_score: float) -> str:
         if avg_score >= 90:

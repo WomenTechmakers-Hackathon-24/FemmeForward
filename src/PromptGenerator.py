@@ -11,15 +11,9 @@ class ContentTag(Enum):
     REPRODUCTIVE_HEALTH = "reproductive_health"
     MENSTRUAL_HEALTH = "menstrual_health"
     MENTAL_HEALTH = "mental_health"
-    NUTRITION = "nutrition"
-    FITNESS = "fitness"
-    HORMONAL_HEALTH = "hormonal_health"
-    SEXUAL_HEALTH = "sexual_health"
-    PREVENTIVE_CARE = "preventive_care"
-    PREGNANCY = "pregnancy"
-    TEEN_HEALTH = "teen_health"
-    BODY_IMAGE = "body_image"
+    PHYSICAL_HEALTH = "physical_health"
     GENERAL_WELLNESS = "general_wellness"
+    EMOTIONAL_HEALTH = "emotional_health"
 
 class PromptGenerator:
     def __init__(self):

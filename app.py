@@ -152,8 +152,14 @@ def update_profile(current_user):
 @app.route('/interests', methods=['GET'])
 def list_content_tags():
     content_generator = ContentGenerator()
-    tags = content_generator.get_content_tags()
+    tags = content_generator.list_content_tags()
     return jsonify(tags), 200
+
+@app.route('/topics', methods=['GET'])
+def get_personalized_topics(current_user):
+    progress_tracker = ProgressTracker()
+    topics = progress_tracker.get_user_topics(current_user['email'])
+    return jsonify(topics), 200
 
 @app.route('/generate_quiz', methods=['POST'])
 #@token_required
