@@ -1,22 +1,24 @@
-import { QuizProps } from '@/types/quiz';
+import { QuizProps, QuizResult } from '@/types/quiz';
 import { useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import api from '@/api/axios';
 import axios from 'axios';
+import LoadingSpinner from '../ui/LoadingSpinner';
 
 const Quiz: React.FC<QuizProps> = ({ quizData }) => {
   const [currentQuestion, setCurrentQuestion] = useState<number>(0);
   const [selectedAnswers, setSelectedAnswers] = useState<(string | null)[]>(Array(quizData.questions.length).fill(null));
   const [showFeedback, setShowFeedback] = useState<boolean[]>(Array(quizData.questions.length).fill(false));
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
-  const [score, setScore] = useState<number>(0);
+  const [score, setScore] = useState<QuizResult>();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const submitAnswer = async (answer: string) => {
     try {
-      const response = await api.post(`/submit-answer`, {
+      const response = await api.post(`/quiz/submit-answer`, {
         attempt_id: quizData.attempt_id,
-        question_index: currentQuestion,
+        question_id: quizData.questions[currentQuestion].question_id,
         answer: answer
       });
       response.data // is_correct, correct_answer, explanation
@@ -25,7 +27,26 @@ const Quiz: React.FC<QuizProps> = ({ quizData }) => {
       if (axios.isAxiosError(error)) {
           console.error('Error starting quiz:', error);
           //setError('Error connecting to the server.');
-          //setIsLoading(false);
+          //setLoading(false);
+          return;
+        }
+    }
+  }
+
+  const finishQuiz = async () => {
+    setIsLoading(true);
+    try {
+      const response = await api.post(`/quiz/complete`, {
+        attempt_id: quizData.attempt_id,
+      });
+      setScore(response.data)
+      setIsLoading(false);
+      return;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+          console.error('Error starting quiz:', error);
+          //setError('Error connecting to the server.');
+          //setLoading(false);
           return;
         }
     }
@@ -43,9 +64,9 @@ const Quiz: React.FC<QuizProps> = ({ quizData }) => {
     feedbackCopy[currentQuestion] = true;
     setShowFeedback(feedbackCopy);
 
-    if (answer.slice(0, 2) === quizData.questions[currentQuestion].correct_answer) {
-      setScore(prevScore => prevScore + 1);
-    }
+    //if (answer === quizData.questions[currentQuestion].correct_answer) {
+      //setScore(prevScore => prevScore + 1);
+    //}
   };
 
   const handleNext = () => {
@@ -61,9 +82,11 @@ const Quiz: React.FC<QuizProps> = ({ quizData }) => {
   };
 
   const handleSubmit = () => {
+    finishQuiz();
     setIsSubmitted(true);
   };
-
+  if (isLoading) return <LoadingSpinner/>;
+  
   return (
     <div className="flex flex-col gap-6 p-4">
       {!isSubmitted ? (
@@ -77,7 +100,7 @@ const Quiz: React.FC<QuizProps> = ({ quizData }) => {
                 let buttonClass = '';
 
                 if (selectedAnswers[currentQuestion] !== null) {
-                  if (option.slice(0, 2) === quizData.questions[currentQuestion].correct_answer) {
+                  if (option === quizData.questions[currentQuestion].correct_answer) {
                     buttonClass = 'bg-green-500 text-white';
                   } else if (option === selectedAnswers[currentQuestion]) {
                     buttonClass = 'bg-red-500 text-white';
@@ -99,7 +122,7 @@ const Quiz: React.FC<QuizProps> = ({ quizData }) => {
             </div>
             {showFeedback[currentQuestion] && (
               <div className="mt-2">
-                {selectedAnswers[currentQuestion]?.slice(0, 2) === quizData.questions[currentQuestion].correct_answer ? (
+                {selectedAnswers[currentQuestion] === quizData.questions[currentQuestion].correct_answer ? (
                   <p className="text-green-600 font-medium">Correct!</p>
                 ) : (
                   <p className="text-red-600 font-medium">Incorrect. {quizData.questions[currentQuestion].explanation}</p>
@@ -125,8 +148,8 @@ const Quiz: React.FC<QuizProps> = ({ quizData }) => {
         </>
       ) : (
         <div>
-          <h2 className="text-2xl font-semibold mb-4">Quiz Results</h2>
-          <p className="mb-4">You scored {score} out of {quizData.questions.length}.</p>
+          <h2 className="text-2xl font-semibold mb-4">Quiz Results: {score?.status}  </h2>
+          <p className="mb-4">Your score is {score?.score}%. {score?.correct_answers} out of {score?.total_questions}.</p>
         </div>
       )}
     </div>
