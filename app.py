@@ -69,6 +69,11 @@ def token_required(f):
     
     return decorated
 
+# for pre-flight options
+@app.route('/<path:path>', methods=['OPTIONS'])
+def handle_options(path):
+    return '', 200
+    
 @app.route('/register', methods=['POST'])
 def register_user():
     progress_tracker = ProgressTracker()
