@@ -178,9 +178,9 @@ def generate_quiz(current_user):
         num_questions=data['num_questions']
     )
     
-    quiz_list = content_generator.store_quiz(quiz.questions)
+    quiz_id = content_generator.store_quiz(quiz.questions)
     
-    return jsonify(quiz_list), 201
+    return jsonify(quiz_id), 201
 
 @app.route('/quiz/<quiz_id>', methods=['GET'])
 def get_quiz_data(quiz_id):
