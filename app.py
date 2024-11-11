@@ -75,7 +75,6 @@ def handle_options(path):
     return '', 200
     
 @app.route('/register', methods=['POST'])
-@cross_origin()
 def register_user():
     progress_tracker = ProgressTracker()
     data = request.json
@@ -112,7 +111,6 @@ def register_user():
     return jsonify({"message": "User registered successfully"}), 201
 
 @app.route('/verify-token', methods=['POST'])
-@cross_origin()
 @token_required
 def verify_token():
     token = request.json.get('token')
