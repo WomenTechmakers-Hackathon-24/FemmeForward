@@ -256,7 +256,7 @@ def submit_answer(current_user):
         return jsonify({'error': 'Quiz already completed'}), 400
     
     # Get the quiz to check the correct answer
-    quiz_ref = db.collection('content').document(attempt_data['quiz_id']).collection('questions').collection(quiz_id)
+    quiz_ref = db.collection('content').document(attempt_data['quiz_id']).collection('questions').document(quiz_id)
     quiz = quiz_ref.get()
     
     if not quiz.exists:
