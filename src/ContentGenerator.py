@@ -3,7 +3,7 @@ import json
 import logging
 import uuid
 from typing import List, Dict, Any
-from PromptGenerator import PromptGenerator, DifficultyLevel, ContentTag, AgeGroup
+from PromptGenerator import PromptGenerator, ContentTag
 from firebase_admin import firestore
 from datetime import timedelta, datetime, timezone
 import google.generativeai as genai
@@ -81,13 +81,13 @@ class ContentGenerator:
         self, 
         quiz_data: Dict, 
         topic: str, 
-        difficulty: DifficultyLevel
+        difficulty: str
     ) -> QuizMetadata:
         """Parse and validate quiz metadata."""
         
         return QuizMetadata(
             topic=topic,
-            difficulty=difficulty.value,
+            difficulty=difficulty,
             adaptive_elements=quiz_data.get('adaptive_elements', {})
         )
 
@@ -108,8 +108,8 @@ class ContentGenerator:
         self,
         topic: str,
         tags: List[ContentTag],
-        age_group: AgeGroup,
-        difficulty: DifficultyLevel,
+        age_group: str,
+        difficulty: str,
         user_id: str,
         num_questions: int
     ) -> ParsedQuiz:

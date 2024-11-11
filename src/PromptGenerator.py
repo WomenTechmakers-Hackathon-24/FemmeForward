@@ -23,8 +23,8 @@ class PromptGenerator:
         self,
         topic: str,
         tags: List[ContentTag],
-        age_group: AgeGroup,
-        difficulty: DifficultyLevel,
+        age_group: str,
+        difficulty: str,
         user_id: str,
         num_questions: int
     ) -> str:
@@ -44,11 +44,11 @@ class PromptGenerator:
         }
 
         return f"""
-        Create a personalized {difficulty.value}-level quiz about {topic} with {num_questions} questions
-        for {age_group.value} age group.
+        Create a personalized {difficulty}-level quiz about {topic} with {num_questions} questions
+        for {age_group} age group.
 
         Content Personalization:
-        {age_appropriate_language.get(age_group, "Use clear, appropriate language.")}
+        {age_appropriate_language.get(AgeGroup(age_group), "Use clear, appropriate language.")}
         {depth_instructions.get(adjustments['depth_level'], "Adjust depth appropriately.")}
         
         Complexity Adjustment: {adjustments['complexity_adjustment']['adjustment_factor']}
