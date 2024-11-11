@@ -192,6 +192,8 @@ def get_quiz_questions(quiz_id):
 
     for question in questions:
         quiz_data.append(question.to_dict())
+        question_data['question_id'] = question.id
+        quiz_data.append(question_data)
 
     return jsonify(quiz_data), 200
 
@@ -256,14 +258,13 @@ def submit_answer(current_user):
         return jsonify({'error': 'Quiz already completed'}), 400
     
     # Get the quiz to check the correct answer
-    quiz_ref = db.collection('content').document(attempt_data['quiz_id']).collection('questions')
+    quiz_ref = db.collection('content').document(attempt_data['quiz_id']).collection('questions').document('question_id')
     quiz = quiz_ref.get()
     
     if not quiz.exists:
         return jsonify({'error': 'Quiz not found'}), 404
 
-    quiz_list = list(quiz)
-    quiz_data = quiz_list['question_index'].to_dict()
+    quiz_data = quiz.to_dict()
     is_correct = data['answer'] == quiz_data['correct_answer']
     
     # Update the answers array
