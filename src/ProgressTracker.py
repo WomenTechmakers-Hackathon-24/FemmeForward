@@ -158,7 +158,7 @@ class ProgressTracker:
             relevant_topics = relevant_topics.intersection(allowed_topics)
             relevant_topics = relevant_topics - restricted_topics
 
-        return relevant_topics
+        return list(relevant_topics)
 
     def _calculate_depth_level(self, avg_score: float) -> str:
         if avg_score >= 90:
