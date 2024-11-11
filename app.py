@@ -241,7 +241,7 @@ def start_quiz(current_user):
 @token_required
 def submit_answer(current_user):
     data = request.json
-    if not all(k in data for k in ['attempt_id', 'question_index', 'answer']):
+    if not all(k in data for k in ['attempt_id', 'question_id', 'answer']):
         return jsonify({'error': 'Missing required fields'}), 400
     
     attempt_ref = db.collection('quiz_attempts').document(data['attempt_id'])
@@ -258,7 +258,7 @@ def submit_answer(current_user):
         return jsonify({'error': 'Quiz already completed'}), 400
     
     # Get the quiz to check the correct answer
-    quiz_ref = db.collection('content').document(attempt_data['quiz_id']).collection('questions').document('question_id')
+    quiz_ref = db.collection('content').document(attempt_data['quiz_id']).collection('questions').document(data['question_id'])
     quiz = quiz_ref.get()
     
     if not quiz.exists:
@@ -269,7 +269,7 @@ def submit_answer(current_user):
     
     # Update the answers array
     answer_data = {
-        'question_index': data['quiz_id'],
+        'question_id': data['question_id'],
         'user_answer': data['answer'],
         'is_correct': is_correct,
         'submitted_at': firestore.SERVER_TIMESTAMP
@@ -278,7 +278,7 @@ def submit_answer(current_user):
     # Update the attempt with the new answer
     attempt_ref.update({
         'answers': firestore.ArrayUnion([answer_data]),
-        'current_question': data['quiz_id'] + 1
+        'current_question': firestore.Increment(1) #increment itself by 1
     })
     
     return jsonify({
