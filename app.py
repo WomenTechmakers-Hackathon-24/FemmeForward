@@ -229,7 +229,7 @@ def start_quiz(current_user):
 @token_required
 def submit_answer(current_user):
     data = request.json
-    if not all(k in data for k in ['attempt_id', 'question_index', 'answer']):
+    if not all(k in data for k in ['attempt_id', 'quiz_id', 'answer']):
         return jsonify({'error': 'Missing required fields'}), 400
     
     attempt_ref = db.collection('quiz_attempts').document(data['attempt_id'])
@@ -253,12 +253,11 @@ def submit_answer(current_user):
         return jsonify({'error': 'Quiz not found'}), 404
     
     quiz_data = quiz.to_dict()
-    question = quiz_data['questions'][data['question_index']]
-    is_correct = data['answer'] == question['correct_answer']
+    is_correct = data['answer'] == quiz_data['correct_answer']
     
     # Update the answers array
     answer_data = {
-        'question_index': data['question_index'],
+        'question_index': data['quiz_id'],
         'user_answer': data['answer'],
         'is_correct': is_correct,
         'submitted_at': firestore.SERVER_TIMESTAMP
@@ -272,8 +271,8 @@ def submit_answer(current_user):
     
     return jsonify({
         'is_correct': is_correct,
-        'correct_answer': question['correct_answer'],
-        'explanation': question.get('explanation', '')
+        'correct_answer': quiz_data['correct_answer'],
+        'explanation': quiz_data.get('explanation', '')
     }), 200
 
 @app.route('/quiz/complete', methods=['POST'])
