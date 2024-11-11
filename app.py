@@ -187,6 +187,9 @@ def get_quiz_questions(quiz_id):
     questions = db.collection('content').document(quiz_id).collection('questions').stream()
     quiz_data = []
 
+    if not questions:
+        return jsonify({'error': 'Quiz not found'}), 404
+
     for question in questions:
         quiz_data.append(question.to_dict())
 
