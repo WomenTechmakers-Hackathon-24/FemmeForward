@@ -266,18 +266,20 @@ def submit_answer(current_user):
 
     quiz_data = quiz.to_dict()
     is_correct = data['answer'] == quiz_data['correct_answer']
-    
+
+    app.logger.info("Creating answer_data")
     # Update the answers array
     answer_data = {
         'question_id': data['question_id'],
         'user_answer': data['answer'],
         'is_correct': is_correct,
-        'submitted_at': firestore.SERVER_TIMESTAMP
     }
-    
+    current_answers = attempt_data.get('answers', [])
+    current_answers.append(answer_data)
+
     # Update the attempt with the new answer
     attempt_ref.update({
-        'answers': firestore.ArrayUnion([answer_data]),
+        'answers': current_answers,
         'current_question': firestore.Increment(1) #increment itself by 1
     })
     
