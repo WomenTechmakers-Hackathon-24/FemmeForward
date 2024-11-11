@@ -1,4 +1,6 @@
 export interface QuizData {
+    quiz_id: string;
+    attempt_id: string;
     questions: Question[];
   }
   

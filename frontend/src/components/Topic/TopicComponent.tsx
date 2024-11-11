@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import LoadingSpinner from '../ui/LoadingSpinner';
-import { TopicList } from '@/types/topic';
+import { Topic } from '@/types/topic';
 import api from '@/api/axios';
 import { Badge } from "@/components/ui/badge";
 import { defaultColor, tagColorMap } from '@/types/tags';
@@ -11,7 +11,7 @@ interface TopicComponentProps {
 };
 
 const TopicComponent: React.FC<TopicComponentProps> = ({ onTopicClick }) => {
-  const [topics, setTopics] = useState<TopicList | null>(null);
+  const [topics, setTopics] = useState<Topic[] | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,11 +19,21 @@ const TopicComponent: React.FC<TopicComponentProps> = ({ onTopicClick }) => {
     return tagColorMap[tag] || defaultColor;
   };
   
+  const generateTopicDetails = (title: string): Topic => {
+    // Customize the logic to create tags and difficulty as needed
+    return {
+        title,
+        tags: [], // empty for now
+        difficulty: [] // empty for now
+    };
+};
+
   const getTopics = async () => {
       setIsLoading(true);
       try {
         const response = await api.get(`/topics`);
-        setTopics(response.data);
+        const topics = response.data.map((title: string) => generateTopicDetails(title));
+        setTopics(topics);
         setError(null); 
         setIsLoading(false);
         return;
@@ -50,9 +60,10 @@ const TopicComponent: React.FC<TopicComponentProps> = ({ onTopicClick }) => {
     <div>
       {topics ? (
         <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        {topics.topics.map((topic, index) => (
+        {topics.map((topic, index) => (
           <div key={index} className="border rounded-lg shadow-md p-4 bg-white" onClick={() => onTopicClick(topic.title)}>
             <h3 className="text-lg font-semibold mb-2">{topic.title}</h3>
+            {/*
             <div className="flex flex-wrap gap-2">
               {topic.tags.map((tag, i) => (
                 <Badge key={i} className={`text-sm ${getColorClasses(tag)}`}>
@@ -60,6 +71,7 @@ const TopicComponent: React.FC<TopicComponentProps> = ({ onTopicClick }) => {
               </Badge>
               ))}
             </div>
+             */}
           </div>
         ))}
       </div>

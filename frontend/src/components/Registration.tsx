@@ -12,35 +12,43 @@ const Registration = () => {
   const { googleUser, completeRegistration, logout } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [step, setStep] = useState(1); // Track which step of the registration
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [step, setStep] = useState(1);
+  const [formData, setFormData] = useState({
+    name: '',
+    birthdate: '',
+    interests: [] as string[],
+  });
   const [tags, setTags] = useState<string[]>([]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError('');
-  
+
     try {
-      const formData = new FormData(e.currentTarget);
-      const birthdate = formData.get('birthdate') as string;
-      const birthdateDate = new Date(birthdate);
+      const birthdateDate = new Date(formData.birthdate);
       const today = new Date();
       const age = today.getFullYear() - birthdateDate.getFullYear();
       const monthDiff = today.getMonth() - birthdateDate.getMonth();
-  
+
       if (age < 13 || (age === 13 && monthDiff < 0)) {
         throw new Error('You must be at least 13 years old to register.');
       }
-  
-        try {
-          const response = await api.get(`/interests`);
-          setTags(response.data);
-        }
-        catch (error) {
-          return;
-        }
-        setStep(2); // Move to the tag selection step
+
+      try {
+        const response = await api.get(`/interests`);
+        setTags(response.data);
+      } catch (error) {
+        setError('Failed to load interests. Please try again later.');
+        return;
+      }
+
+      setStep(2);
     } catch (error) {
       console.error('Registration error:', error);
       setError(error instanceof Error ? error.message : 'Registration failed. Please try again.');
@@ -48,30 +56,31 @@ const Registration = () => {
       setIsSubmitting(false);
     }
   };
-  
-  const handleCompleteRegistration = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); // Prevent default form submission
-    
-    const formData = {
-      //name: (document.querySelector('#name') as HTMLInputElement).value,
-      //birthdate: (document.querySelector('#birthdate') as HTMLInputElement).value,
-      //tags: selectedTags,
-    };
-  
+
+  const handleCompleteRegistration = async () => {
+    setIsSubmitting(true);
+    setError('');
+
     try {
-      await completeRegistration(formData); // Send the data to the API
-      // Handle successful registration (e.g., navigate to the homepage)
+      const completeData = {
+        ...formData,
+        interests: formData.interests,
+      };
+
+      await completeRegistration(completeData);
     } catch (error) {
       console.error('Registration failed:', error);
       setError('Failed to complete registration. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleTagSelection = (tag: string) => {
-    if (selectedTags.includes(tag)) {
-      setSelectedTags(selectedTags.filter(t => t !== tag));
-    } else if (selectedTags.length < 3) {
-      setSelectedTags([...selectedTags, tag]);
+    if (formData.interests.includes(tag)) {
+      setFormData({ ...formData, interests: formData.interests.filter(t => t !== tag) });
+    } else if (formData.interests.length < 3) {
+      setFormData({ ...formData, interests: [...formData.interests, tag] });
     }
   };
 
@@ -108,14 +117,31 @@ const Registration = () => {
                 <Label htmlFor="name" className="text-sm font-medium">Full Name</Label>
                 <div className="relative">
                   <UserCircle className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                  <Input id="name" name="name" required className="pl-10" placeholder="Enter your full name" />
+                  <Input
+                    id="name"
+                    name="name"
+                    required
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className="pl-10"
+                    placeholder="Enter your full name"
+                  />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="birthdate" className="text-sm font-medium">Birth Date</Label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                  <Input type="date" id="birthdate" name="birthdate" required max={maxDate()} className="pl-10" />
+                  <Input
+                    type="date"
+                    id="birthdate"
+                    name="birthdate"
+                    required
+                    max={maxDate()}
+                    value={formData.birthdate}
+                    onChange={handleInputChange}
+                    className="pl-10"
+                  />
                 </div>
                 <p className="text-sm text-gray-500">You must be at least 13 years old to register.</p>
               </div>
@@ -138,7 +164,7 @@ const Registration = () => {
               {tags.map(tag => (
                 <Button
                   key={tag}
-                  variant={selectedTags.includes(tag) ? 'default' : 'outline'}
+                  variant={formData.interests.includes(tag) ? 'default' : 'outline'}
                   onClick={() => handleTagSelection(tag)}
                 >
                   {tag}
@@ -147,22 +173,17 @@ const Registration = () => {
             </div>
             <div className="flex items-center gap-4 mt-4">
               <Button
-                variant="link" // Make it look like a link or a small button
-                onClick={() => setStep(1)} // Go back to step 1
+                variant="link"
+                onClick={() => setStep(1)}
                 className="text-sm text-blue-600 hover:text-blue-800 flex items-center w-auto"
               >
-                <ChevronLeft className="mr-2 h-4 w-4" /> Back
+                <ChevronLeft className="mr-2 h-4 w-4" />
+                Back
+              </Button>
+              <Button onClick={handleCompleteRegistration} disabled={isSubmitting} className="w-full bg-indigo-500">
+                {isSubmitting ? 'Finalizing...' : 'Complete Registration'}
               </Button>
             </div>
-            <form onSubmit={handleCompleteRegistration}> {/* Handle submit here */}
-            <Button
-              type="submit" // Now it is a submit button
-              disabled={selectedTags.length === 0 || isSubmitting}
-              className="w-full bg-indigo-500 mt-4"
-            >
-              {isSubmitting ? 'Completing registration...' : 'Complete Registration'}
-            </Button>
-            </form>
           </CardContent>
         </Card>
       )}

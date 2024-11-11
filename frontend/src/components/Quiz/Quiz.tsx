@@ -2,6 +2,8 @@ import { QuizProps } from '@/types/quiz';
 import { useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import api from '@/api/axios';
+import axios from 'axios';
 
 const Quiz: React.FC<QuizProps> = ({ quizData }) => {
   const [currentQuestion, setCurrentQuestion] = useState<number>(0);
@@ -10,8 +12,28 @@ const Quiz: React.FC<QuizProps> = ({ quizData }) => {
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const [score, setScore] = useState<number>(0);
 
+  const submitAnswer = async (answer: string) => {
+    try {
+      const response = await api.post(`/submit-answer`, {
+        attempt_id: quizData.attempt_id,
+        question_index: currentQuestion,
+        answer: answer
+      });
+      response.data // is_correct, correct_answer, explanation
+      return;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+          console.error('Error starting quiz:', error);
+          //setError('Error connecting to the server.');
+          //setIsLoading(false);
+          return;
+        }
+    }
+  }
+
   const handleAnswerSelect = (answer: string) => {
     if (selectedAnswers[currentQuestion] !== null) return; // Prevent changing answer
+    submitAnswer(answer);
 
     const updatedAnswers = [...selectedAnswers];
     updatedAnswers[currentQuestion] = answer;

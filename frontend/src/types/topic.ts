@@ -3,7 +3,3 @@ export interface Topic {
     tags: string[];
     difficulty?: string[];
 }
-
-export interface TopicList {
-    topics: Topic[];
-}

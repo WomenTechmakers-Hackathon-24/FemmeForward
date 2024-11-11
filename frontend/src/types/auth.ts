@@ -3,6 +3,7 @@ export interface UserData {
     email: string;
     birthdate: string; // Format: YYYY-MM-DD
     name: string;
+    interests: string[];
   }
   
   export interface LoadingState {
