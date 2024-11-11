@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import { TopicList } from '@/types/topic';
 import api from '@/api/axios';
-import { mockTopics } from './MockTopics';
 import { Badge } from "@/components/ui/badge";
 import { defaultColor, tagColorMap } from '@/types/tags';
 
@@ -23,12 +22,7 @@ const TopicComponent: React.FC<TopicComponentProps> = ({ onTopicClick }) => {
   const getTopics = async () => {
       setIsLoading(true);
       try {
-        const response = await api.post(`/generate_quiz`, {
-          //topic: topic, 
-          //tags: tags,
-          //age_group: age_group,
-          //num_questions: num_questions
-        });
+        const response = await api.get(`/topics`);
         setTopics(response.data);
         setError(null); 
         setIsLoading(false);
@@ -45,15 +39,13 @@ const TopicComponent: React.FC<TopicComponentProps> = ({ onTopicClick }) => {
     }
 
   useEffect(() => {
-    setTopics(mockTopics);
-    //getTopics();
+    getTopics();
   }, []);
 
 
   if (isLoading) return <LoadingSpinner/>;
   if (error) return <p>Error loading quiz: {error}</p>;
 
-  //return topics ? <Topic topic={topics} /> : <p>No data available</p>;
   return (
     <div>
       {topics ? (
