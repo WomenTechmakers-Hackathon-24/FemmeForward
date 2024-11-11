@@ -113,6 +113,7 @@ def register_user():
 
 @app.route('/verify-token', methods=['POST'])
 @cross_origin()
+@token_required
 def verify_token():
     token = request.json.get('token')
     try:
