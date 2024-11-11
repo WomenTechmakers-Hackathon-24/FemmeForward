@@ -6,6 +6,7 @@ import google.generativeai as genai
 from functools import wraps
 import sys
 import os
+import logging
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -180,6 +181,17 @@ def generate_quiz(current_user):
     quiz_list = content_generator.store_quiz(quiz.questions)
     
     return jsonify(quiz_list), 201
+
+@app.route('/quiz/<quiz_id>', methods=['GET'])
+def get_quiz_data(quiz_id):
+    quiz_ref = db.collection('content').document(quiz_id)
+    quiz = quiz_ref.get()
+    
+    if not quiz.exists:
+        logging.error(f'Quiz {quiz_id} not found')
+        return jsonify({'error': 'Quiz not found'}), 404
+    
+    return jsonify(quiz.to_dict()), 200
 
 @app.route('/content', methods=['GET'])
 @token_required
