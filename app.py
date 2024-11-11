@@ -168,15 +168,11 @@ def generate_quiz(current_user):
     data = request.json
     content_generator = ContentGenerator()
 
-    # Add user's difficulty level if not specified in request
-    if 'difficulty' not in data:
-        data['difficulty'] = current_user.get('difficulty_level', 'beginner')
-
     quiz = content_generator.generate_quiz(
         topic=data['topic'],
-        tags=data['tags'],
-        age_group=data['age_group'],
-        difficulty=data['difficulty'],
+        tags=current_user.get('interests', []),
+        age_group=current_user['age_group'],
+        difficulty=current_user.get('difficulty_level', 'beginner'),
         user_id = current_user['email'],
         num_questions=data['num_questions']
     )
@@ -266,7 +262,7 @@ def submit_answer(current_user):
     # Update the attempt with the new answer
     attempt_ref.update({
         'answers': firestore.ArrayUnion([answer_data]),
-        'current_question': data['question_index'] + 1
+        'current_question': data['quiz_id'] + 1
     })
     
     return jsonify({
