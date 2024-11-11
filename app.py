@@ -191,7 +191,7 @@ def get_quiz_questions(quiz_id):
         return jsonify({'error': 'Quiz not found'}), 404
 
     for question in questions:
-        quiz_data.append(question.to_dict())
+        question_data = question.to_dict()
         question_data['question_id'] = question.id
         quiz_data.append(question_data)
 
