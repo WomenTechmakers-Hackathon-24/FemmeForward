@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 from firebase_admin import firestore, credentials, auth
 import firebase_admin
 import google.generativeai as genai
@@ -75,6 +75,7 @@ def handle_options(path):
     return '', 200
     
 @app.route('/register', methods=['POST'])
+@cross_origin()
 def register_user():
     progress_tracker = ProgressTracker()
     data = request.json
@@ -111,6 +112,7 @@ def register_user():
     return jsonify({"message": "User registered successfully"}), 201
 
 @app.route('/verify-token', methods=['POST'])
+@cross_origin()
 def verify_token():
     token = request.json.get('token')
     try:
@@ -138,11 +140,13 @@ def verify_token():
         return jsonify({'error': 'Invalid token'}), 401
 
 @app.route('/profile', methods=['GET'])
+@cross_origin()
 @token_required
 def get_profile(current_user):
     return jsonify(current_user), 200
 
 @app.route('/profile', methods=['PUT'])
+@cross_origin()
 @token_required
 def update_profile(current_user):
     data = request.json
@@ -156,12 +160,14 @@ def update_profile(current_user):
     return jsonify({'message': 'Profile updated successfully'}), 200
 
 @app.route('/interests', methods=['GET'])
+@cross_origin()
 def list_content_tags():
     content_generator = ContentGenerator()
     tags = content_generator.list_content_tags()
     return jsonify(tags), 200
 
 @app.route('/topics', methods=['GET'])
+@cross_origin()
 @token_required
 def get_personalized_topics(current_user):
     progress_tracker = ProgressTracker()
@@ -169,6 +175,7 @@ def get_personalized_topics(current_user):
     return jsonify(topics), 200
 
 @app.route('/generate_quiz', methods=['POST'])
+@cross_origin()
 @token_required
 def generate_quiz(current_user):
     data = request.json
@@ -188,6 +195,7 @@ def generate_quiz(current_user):
     return jsonify(quiz_id), 201
 
 @app.route('/quiz/<quiz_id>', methods=['GET'])
+@cross_origin()
 def get_quiz_questions(quiz_id):
     questions = db.collection('content').document(quiz_id).collection('questions').stream()
     quiz_data = []
@@ -203,6 +211,7 @@ def get_quiz_questions(quiz_id):
     return jsonify(quiz_data), 200
 
 @app.route('/content', methods=['GET'])
+@cross_origin()
 @token_required
 def get_personalized_content(current_user):
     if current_user['interests'] == []:
@@ -214,6 +223,7 @@ def get_personalized_content(current_user):
 
 
 @app.route('/quiz/start', methods=['POST'])
+@cross_origin()
 @token_required
 def start_quiz(current_user):
     data = request.json
@@ -243,6 +253,7 @@ def start_quiz(current_user):
     }), 201
 
 @app.route('/quiz/submit-answer', methods=['POST'])
+@cross_origin()
 @token_required
 def submit_answer(current_user):
     data = request.json
@@ -295,6 +306,7 @@ def submit_answer(current_user):
     }), 200
 
 @app.route('/quiz/complete', methods=['POST'])
+@cross_origin()
 @token_required
 def complete_quiz(current_user):
     data = request.json
@@ -343,6 +355,7 @@ def complete_quiz(current_user):
     }), 200
 
 @app.route('/user/quiz-history', methods=['GET'])
+@cross_origin()
 @token_required
 def get_quiz_history(current_user):
     attempts_query = (db.collection('quiz_attempts')
