@@ -111,7 +111,6 @@ def register_user():
     return jsonify({"message": "User registered successfully"}), 201
 
 @app.route('/verify-token', methods=['POST'])
-@token_required
 def verify_token():
     token = request.json.get('token')
     try:
