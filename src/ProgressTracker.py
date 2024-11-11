@@ -122,12 +122,12 @@ class ProgressTracker:
         
         # Define topic mapping based on interests
         interest_topic_mapping = {
-            'reproductive_health': [Topic.fertility, Topic.contraception, Topic.sexual_health],
-            'menstrual_health': [Topic.period_care, Topic.pms, Topic.hormonal_health],
-            'mental_health': [Topic.mental_health, Topic.mindfulness, Topic.stress_management],
-            'physical_health': [Topic.workouts, Topic.balanced_diet, Topic.habits],
-            'general_wellness': [Topic.self_care, Topic.skincare, Topic.bodycare],
-            'emotional_health': [Topic.self_esteem, Topic.acceptance, Topic.mindfulness]
+            'reproductive health': [Topic.fertility, Topic.contraception, Topic.sexual_health],
+            'menstrual health': [Topic.period_care, Topic.pms, Topic.hormonal_health],
+            'mental health': [Topic.mental_health, Topic.mindfulness, Topic.stress_management],
+            'physical health': [Topic.workouts, Topic.balanced_diet, Topic.habits],
+            'general wellness': [Topic.self_care, Topic.skincare, Topic.bodycare],
+            'emotional health': [Topic.self_esteem, Topic.acceptance, Topic.mindfulness]
         }
 
         # Age group specific restrictions
