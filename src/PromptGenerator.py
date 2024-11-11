@@ -22,7 +22,7 @@ class PromptGenerator:
     def generate_adaptive_content(
         self,
         topic: str,
-        tags: List[ContentTag],
+        tags: List[str],
         age_group: str,
         difficulty: str,
         user_id: str,
@@ -65,7 +65,7 @@ class PromptGenerator:
         9. Reference related completed topics
         10. Prepare for upcoming concepts
 
-        Topic Tags: {', '.join(tag.value for tag in tags)}
+        Topic Tags: {', '.join(tag for tag in tags)}
 
         Required Elements:
         1. Personalized learning objectives

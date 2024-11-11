@@ -107,7 +107,7 @@ class ContentGenerator:
     def generate_quiz(
         self,
         topic: str,
-        tags: List[ContentTag],
+        tags: List[str],
         age_group: str,
         difficulty: str,
         user_id: str,
