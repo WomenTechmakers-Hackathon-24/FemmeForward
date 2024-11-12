@@ -48,7 +48,7 @@ class ContentGenerator:
             'safety_settings': [
                 {
                     "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-                    "threshold": "BLOCK_ONLY_HIGH"
+                    "threshold": "BLOCK_NONE"
                 },
                 {
                     "category": "HARM_CATEGORY_HATE_SPEECH",
