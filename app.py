@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 from firebase_admin import firestore, credentials, auth
 import firebase_admin
 import google.generativeai as genai
@@ -69,6 +69,11 @@ def token_required(f):
     
     return decorated
 
+# for pre-flight options
+@app.route('/<path:path>', methods=['OPTIONS'])
+def handle_options(path):
+    return '', 200
+    
 @app.route('/register', methods=['POST'])
 def register_user():
     progress_tracker = ProgressTracker()
