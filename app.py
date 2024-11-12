@@ -6,7 +6,6 @@ import google.generativeai as genai
 from functools import wraps
 import sys
 import os
-import logging
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -36,7 +35,7 @@ load_dotenv()
 
 # Initialize Firebase if not already initialized
 if not firebase_admin._apps:
-    cred = credentials.Certificate("empowerwomen-fbbda-firebase-adminsdk-96bfo-3ab2cc60b5.json")
+    cred = credentials.Certificate("empowerwomen.json")
     firebase_admin.initialize_app(cred)
 db = firestore.client()
 
@@ -310,7 +309,7 @@ def complete_quiz(current_user):
     attempt_data = attempt.to_dict()
     if attempt_data['user_email'] != current_user['email']:
         return jsonify({'error': 'Unauthorized'}), 403
-    
+
     # Calculate final score
     correct_answers = sum(1 for answer in attempt_data['answers'] if answer['is_correct'])
     total_questions = len(attempt_data['answers'])
