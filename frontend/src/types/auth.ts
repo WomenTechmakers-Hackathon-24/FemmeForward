@@ -3,7 +3,6 @@ export interface UserData {
     email?: string;
     birthdate?: string; // Format: YYYY-MM-DD
     age_group?: string;
-    current_difficulty?: string;
     difficulty_level?: string;
     quiz_scores?: number[];
     name?: string;
