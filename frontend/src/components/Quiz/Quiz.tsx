@@ -25,13 +25,11 @@ const Quiz: React.FC<QuizProps> = ({ quizData }) => {
       return;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-          console.error('Error starting quiz:', error);
-          //setError('Error connecting to the server.');
-          //setLoading(false);
+          console.error('Error submitting answer:', error);
           return;
         }
     }
-  }
+  };
 
   const finishQuiz = async () => {
     setIsLoading(true);
@@ -39,18 +37,16 @@ const Quiz: React.FC<QuizProps> = ({ quizData }) => {
       const response = await api.post(`/quiz/complete`, {
         attempt_id: quizData.attempt_id,
       });
-      setScore(response.data)
+      setScore(response.data);
       setIsLoading(false);
       return;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-          console.error('Error starting quiz:', error);
-          //setError('Error connecting to the server.');
-          //setLoading(false);
+          console.error('Error finishing quiz:', error);
           return;
         }
     }
-  }
+  };
 
   const handleAnswerSelect = (answer: string) => {
     if (selectedAnswers[currentQuestion] !== null) return; // Prevent changing answer
@@ -63,10 +59,6 @@ const Quiz: React.FC<QuizProps> = ({ quizData }) => {
     const feedbackCopy = [...showFeedback];
     feedbackCopy[currentQuestion] = true;
     setShowFeedback(feedbackCopy);
-
-    //if (answer === quizData.questions[currentQuestion].correct_answer) {
-      //setScore(prevScore => prevScore + 1);
-    //}
   };
 
   const handleNext = () => {
@@ -85,14 +77,15 @@ const Quiz: React.FC<QuizProps> = ({ quizData }) => {
     finishQuiz();
     setIsSubmitted(true);
   };
-  if (isLoading) return <LoadingSpinner/>;
-  
+
+  if (isLoading) return <LoadingSpinner />;
+
   return (
     <div className="flex flex-col gap-6 p-4">
       {!isSubmitted ? (
         <>
-          <Card className="w-[400px] p-4">
-            <h2 className="font-semibold mb-4">
+          <Card className="w-[800px] p-4">
+            <h2 className="font-semibold mb-4 text-xl text-gray-800" style={{ width: '100%', maxWidth: '100%' }}>
               {quizData.questions[currentQuestion].question}
             </h2>
             <div className="flex flex-col gap-2">
@@ -109,11 +102,17 @@ const Quiz: React.FC<QuizProps> = ({ quizData }) => {
 
                 return (
                   <Button
-                    className={buttonClass}
+                    className={`${buttonClass} w-full`}
                     variant="outline"
                     key={i}
                     onClick={() => handleAnswerSelect(option)}
                     disabled={selectedAnswers[currentQuestion] !== null} // Disable if already answered
+                    style={{
+                      minHeight: '40px', // Ensuring the option has a minimum height
+                      whiteSpace: 'normal', // Allow text to wrap
+                      wordWrap: 'break-word', // Break long words if necessary
+                      overflowWrap: 'break-word', // Ensuring no clipping of long words
+                    }}
                   >
                     {option}
                   </Button>
@@ -131,14 +130,13 @@ const Quiz: React.FC<QuizProps> = ({ quizData }) => {
             )}
           </Card>
           <div className="flex justify-between mt-4">
-            <Button
-              onClick={handlePrevious}
-              disabled={currentQuestion === 0}
-            >
+            <Button onClick={handlePrevious} disabled={currentQuestion === 0}>
               Previous
             </Button>
             {currentQuestion < quizData.questions.length - 1 ? (
-              <Button onClick={handleNext} disabled={selectedAnswers[currentQuestion] === null}>Next</Button>
+              <Button onClick={handleNext} disabled={selectedAnswers[currentQuestion] === null}>
+                Next
+              </Button>
             ) : (
               <Button onClick={handleSubmit} className="bg-blue-500 text-white" disabled={selectedAnswers[currentQuestion] === null}>
                 Submit
@@ -148,7 +146,7 @@ const Quiz: React.FC<QuizProps> = ({ quizData }) => {
         </>
       ) : (
         <div>
-          <h2 className="text-2xl font-semibold mb-4">Quiz Results: {score?.status}  </h2>
+          <h2 className="text-2xl font-semibold mb-4">Quiz Results: {score?.status.toUpperCase()}</h2>
           <p className="mb-4">Your score is {score?.score}%. {score?.correct_answers} out of {score?.total_questions}.</p>
         </div>
       )}

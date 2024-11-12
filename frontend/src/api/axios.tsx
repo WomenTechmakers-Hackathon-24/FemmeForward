@@ -9,7 +9,8 @@ const api = axios.create({
   timeout: 20000,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  withCredentials: true
 });
 
 // Token refresh handling

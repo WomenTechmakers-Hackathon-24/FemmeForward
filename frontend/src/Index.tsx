@@ -8,10 +8,13 @@ const Index: React.FC = () => {
   
   return (
     <div className="centered-container">
-      <h1 className="logo">Empowering Women</h1>
-      <LoginComponent/>
+      <div className="logo-container">
+        <img src="/FemmeForward.png" alt="Logo" className="logo" />
+        <h1 className="title">Femme Forward</h1>
+      </div>
+      <LoginComponent />
       {error && <p className="text-red-500 mt-2">{error}</p>}
-    </div>  
+    </div>
   );
 };
 

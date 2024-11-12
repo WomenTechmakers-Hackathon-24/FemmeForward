@@ -4,6 +4,8 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import Quiz from './Quiz';
 import LoadingSpinner from '../ui/LoadingSpinner';
+import { Card } from '../ui/card';
+import { Button } from '../ui/button';
 
 interface QuizComponentProps {
   topic: string; // The title of the topic selected for the quiz
@@ -96,18 +98,23 @@ const QuizComponent: React.FC<QuizComponentProps> = ({topic}) => {
     fetchQuizData();
   }, []);
 
-  if (isLoading) return <LoadingSpinner/>;
+  if (isLoading) return <LoadingSpinner message="Generating Quiz"/>;
   if (error) return <p>Error loading quiz: {error}</p>;
 
   if (!hasStarted) {
     return (
-      <div className="start-page">
-        <h1>Welcome to the Quiz!</h1>
-        <p>Topic: {topic}</p>
-        <button onClick={() => startQuiz()}>Start Quiz</button>
+      <div className="flex justify-center items-center min-h-screen py-8">
+        <Card className="p-6 max-w-sm w-full bg-white shadow-lg rounded-lg text-center">
+          <h1 className="text-3xl font-bold text-gray-800 mb-4">Welcome to the Quiz!</h1>
+          <p className="text-lg text-gray-600 mb-6">Topic: <span className="font-semibold text-blue-500">{topic}</span></p>
+          <Button onClick={() => startQuiz()} className="w-full py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition duration-200">
+            Start Quiz
+          </Button>
+        </Card>
       </div>
     );
   }
+
   return quizData ? <Quiz quizData={quizData} /> : <p>No data available</p>;
 }
 

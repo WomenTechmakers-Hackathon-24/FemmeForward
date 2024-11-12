@@ -50,7 +50,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('rememberMe', rememberMe.toString());
   }, [rememberMe]);
 
-  const checkUserRegistration = async (user: User, retries = 3) => {
+  const checkUserRegistration = async (_user: User, retries = 3) => {
     setLoadingStates(prev => ({ ...prev, profileCheck: true }));
     const auth = getAuth();
     const currentUser = auth.currentUser;

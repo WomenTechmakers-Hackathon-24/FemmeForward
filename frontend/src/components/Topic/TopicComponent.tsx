@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import { Topic } from '@/types/topic';
 import api from '@/api/axios';
-import { Badge } from "@/components/ui/badge";
-import { defaultColor, tagColorMap } from '@/types/tags';
+//import { Badge } from "@/components/ui/badge";
+//import { defaultColor, tagColorMap } from '@/types/tags';
 
 interface TopicComponentProps {
     onTopicClick: (topic: string) => void;
@@ -15,9 +15,9 @@ const TopicComponent: React.FC<TopicComponentProps> = ({ onTopicClick }) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const getColorClasses = (tag: string) => {
-    return tagColorMap[tag] || defaultColor;
-  };
+  //const getColorClasses = (tag: string) => {
+  //  return tagColorMap[tag] || defaultColor;
+  //};
   
   const generateTopicDetails = (title: string): Topic => {
     // Customize the logic to create tags and difficulty as needed
@@ -53,11 +53,12 @@ const TopicComponent: React.FC<TopicComponentProps> = ({ onTopicClick }) => {
   }, []);
 
 
-  if (isLoading) return <LoadingSpinner/>;
+  if (isLoading) return <LoadingSpinner message="Getting Personalized Topics"/>;
   if (error) return <p>Error loading quiz: {error}</p>;
 
   return (
     <div>
+       <h1 className="text-3xl font-bold text-center mb-6">List of Personalized Topics</h1>
       {topics ? (
         <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {topics.map((topic, index) => (
