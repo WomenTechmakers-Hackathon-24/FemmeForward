@@ -1,6 +1,6 @@
-# EmpowerWomen Educational Platform - Backend API
+# FemmeForward Educational Platform - Backend API
 
-A Flask-based REST API backend that powers the EmpowerWomen educational platform. This application provides personalized learning experiences, quiz generation, and progress tracking functionality.
+A Flask-based REST API backend that powers the FemmeForward educational platform. This application provides personalized learning experiences, quiz generation, and progress tracking functionality.
 
 ## Features
 

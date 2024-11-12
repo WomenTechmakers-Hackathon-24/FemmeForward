@@ -105,7 +105,7 @@ class ProgressTracker:
             user_ref.set({
                 'quiz_scores': quiz_scores[-10:],  # Keep only the last 10 scores
                 'completed_topics': list(set(completed_topics)),  # Remove duplicates
-                'current_difficulty': self._update_difficulty_level(quiz_scores)
+                'difficulty_level': self._update_difficulty_level(quiz_scores)
             }, merge=True)
 
     def get_user_topics(self, user_id: str) -> List[str]:
@@ -180,14 +180,23 @@ class ProgressTracker:
     
     def _update_difficulty_level(self, quiz_scores: List[float]) -> UserDifficulty:
         """Update user difficulty level based on recent quiz scores."""
+        MIN_QUIZZES = 5 # Minimum number of quizzes to consider for difficulty level
+        
         if not quiz_scores:
             return UserDifficulty.BEGINNER.value
         
+        # If less than 5 quizzes taken, cap at INTERMEDIATE
+        if len(quiz_scores) < MIN_QUIZZES:
+            avg_score = sum(quiz_scores) / len(quiz_scores)
+            if avg_score >= 60:
+                return UserDifficulty.INTERMEDIATE.value
+            return UserDifficulty.BEGINNER.value
+
         avg_score = sum(quiz_scores) / len(quiz_scores)
         
-        if avg_score >= 90:
+        if avg_score >= 80:
             return UserDifficulty.ADVANCED.value
-        elif avg_score >= 80:
+        elif avg_score >= 60:
             return UserDifficulty.INTERMEDIATE.value
         else:
-            return UserDifficulty.BEGINNER.value
+            return UserDifficulty.BEGINNER.value    

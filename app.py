@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 from firebase_admin import firestore, credentials, auth
 import firebase_admin
 import google.generativeai as genai
@@ -150,7 +150,12 @@ def update_profile(current_user):
     # Fields that cannot be updated
     protected_fields = ['email', 'created_at']
     update_data = {k: v for k, v in data.items() if k not in protected_fields}
-    
+    if update_data.get('birthdate'):
+        progress_tracker = ProgressTracker()
+        birthdate = datetime.strptime(update_data['birthdate'], '%Y-%m-%d')
+        age = datetime.now().year - birthdate.year
+        update_data['age_group'] = progress_tracker.determine_age_group(age)
+
     user_ref.update(update_data)
     return jsonify({'message': 'Profile updated successfully'}), 200
 
