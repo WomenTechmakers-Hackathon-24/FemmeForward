@@ -1,9 +1,14 @@
 export interface UserData {
-    id: string;
-    email: string;
-    birthdate: string; // Format: YYYY-MM-DD
-    name: string;
-    interests: string[];
+    id?: string;
+    email?: string;
+    birthdate?: string; // Format: YYYY-MM-DD
+    age_group?: string;
+    current_difficulty?: string;
+    difficulty_level?: string;
+    quiz_scores?: number[];
+    name?: string;
+    interests?: string[];
+    ave_score?: number;
   }
   
   export interface LoadingState {

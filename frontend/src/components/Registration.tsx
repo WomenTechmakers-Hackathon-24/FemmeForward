@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { UserCircle, Calendar, ChevronLeft } from "lucide-react";
 import api from '@/api/axios';
+import InterestsComponent from './Topic/InterestsComponent'; // Import the InterestsSelection component
 
 const Registration = () => {
   const { googleUser, completeRegistration, logout } = useAuth();
@@ -159,18 +160,13 @@ const Registration = () => {
               Choose up to 3 topics you are interested in.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-2">
-              {tags.map(tag => (
-                <Button
-                  key={tag}
-                  variant={formData.interests.includes(tag) ? 'default' : 'outline'}
-                  onClick={() => handleTagSelection(tag)}
-                >
-                  {tag}
-                </Button>
-              ))}
-            </div>
+          <CardContent>
+            <InterestsComponent
+              tags={tags}
+              selectedInterests={formData.interests}
+              onTagSelection={handleTagSelection}
+              isEditable={true}
+            />
             <div className="flex items-center gap-4 mt-4">
               <Button
                 variant="link"
