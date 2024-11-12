@@ -32,21 +32,6 @@ CORS(app, resources={
     }
 })
 
-@app.after_request
-def apply_cors_headers(response):
-    origin = request.headers.get('Origin')
-    allowed_origins = [
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:5173",
-        "https://empowerwomen-fbbda.web.app"
-    ]
-    if origin in allowed_origins:
-        response.headers['Access-Control-Allow-Origin'] = origin
-        response.headers['Access-Control-Allow-Credentials'] = 'true'
-    return response
-
 load_dotenv()
 
 # Initialize Firebase if not already initialized
@@ -153,13 +138,11 @@ def verify_token():
         return jsonify({'error': 'Invalid token'}), 401
 
 @app.route('/profile', methods=['GET'])
-@cross_origin()
 @token_required
 def get_profile(current_user):
     return jsonify(current_user), 200
 
 @app.route('/profile', methods=['PUT'])
-@cross_origin()
 @token_required
 def update_profile(current_user):
     data = request.json
@@ -173,14 +156,12 @@ def update_profile(current_user):
     return jsonify({'message': 'Profile updated successfully'}), 200
 
 @app.route('/interests', methods=['GET'])
-@cross_origin()
 def list_content_tags():
     content_generator = ContentGenerator()
     tags = content_generator.list_content_tags()
     return jsonify(tags), 200
 
 @app.route('/topics', methods=['GET'])
-@cross_origin()
 @token_required
 def get_personalized_topics(current_user):
     progress_tracker = ProgressTracker()
@@ -188,7 +169,6 @@ def get_personalized_topics(current_user):
     return jsonify(topics), 200
 
 @app.route('/generate_quiz', methods=['POST'])
-@cross_origin()
 @token_required
 def generate_quiz(current_user):
     data = request.json
@@ -208,7 +188,6 @@ def generate_quiz(current_user):
     return jsonify(quiz_id), 201
 
 @app.route('/quiz/<quiz_id>', methods=['GET'])
-@cross_origin()
 def get_quiz_questions(quiz_id):
     questions = db.collection('content').document(quiz_id).collection('questions').stream()
     quiz_data = []
@@ -224,7 +203,6 @@ def get_quiz_questions(quiz_id):
     return jsonify(quiz_data), 200
 
 @app.route('/content', methods=['GET'])
-@cross_origin()
 @token_required
 def get_personalized_content(current_user):
     if current_user['interests'] == []:
@@ -236,7 +214,6 @@ def get_personalized_content(current_user):
 
 
 @app.route('/quiz/start', methods=['POST'])
-@cross_origin()
 @token_required
 def start_quiz(current_user):
     data = request.json
@@ -266,7 +243,6 @@ def start_quiz(current_user):
     }), 201
 
 @app.route('/quiz/submit-answer', methods=['POST'])
-@cross_origin()
 @token_required
 def submit_answer(current_user):
     data = request.json
@@ -319,7 +295,6 @@ def submit_answer(current_user):
     }), 200
 
 @app.route('/quiz/complete', methods=['POST'])
-@cross_origin()
 @token_required
 def complete_quiz(current_user):
     data = request.json
@@ -368,7 +343,6 @@ def complete_quiz(current_user):
     }), 200
 
 @app.route('/user/quiz-history', methods=['GET'])
-@cross_origin()
 @token_required
 def get_quiz_history(current_user):
     attempts_query = (db.collection('quiz_attempts')
