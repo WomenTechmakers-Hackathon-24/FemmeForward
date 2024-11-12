@@ -90,7 +90,7 @@ The API supports CORS for the following origins:
 - `src/`
   - `ContentGenerator.py` - Handles content and quiz generation
   - `ProgressTracker.py` - Manages user progress and learning paths
-  - 'PromptGenerator.py' - Creates a personalized prompt according to user progress
+  - `PromptGenerator.py` - Creates a personalized prompt according to user progress
 
 ## Database Structure (Firestore)
 
