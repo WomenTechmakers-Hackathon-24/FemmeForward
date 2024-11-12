@@ -32,6 +32,21 @@ CORS(app, resources={
     }
 })
 
+@app.after_request
+def apply_cors_headers(response):
+    origin = request.headers.get('Origin')
+    allowed_origins = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173",
+        "https://empowerwomen-fbbda.web.app"
+    ]
+    if origin in allowed_origins:
+        response.headers['Access-Control-Allow-Origin'] = origin
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
+    return response
+
 load_dotenv()
 
 # Initialize Firebase if not already initialized
