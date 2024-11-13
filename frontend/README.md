@@ -1,50 +1,62 @@
-# React + TypeScript + Vite
+# FemmeForward Educational Platform - Frontend Static Page
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend React WebApp for the FemmeForward educational platform. This application provides personalized learning experiences, quiz generation, and progress tracking functionality. This react app can be deployed standalone or included in the FemmeForward Flask App.
 
-Currently, two official plugins are available:
+## Prerequisites
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- React + Vite + TS
+- Tailwind CSS
+- Firebase Project
+- shadcn/ui
+- Axios
 
-## Expanding the ESLint configuration
+## Environment Setup
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+1. Create a `.env` file in the root directory:
+```
+VITE_API_BASE_URL=URL where backend is deployed e.g. localhost:5000 for dev
 
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+Firebase Config Environment
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
+VITE_FIREBASE_MESSAGING_SENDER_ID=
+VITE_FIREBASE_APP_ID=
+VITE_FIREBASE_MEASUREMENT_ID=
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+## Installation
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+1. Clone the repository:
+```bash
+git clone [repository-url]
+cd femmeforward-frontend
 ```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3a. Run the application (standalone)
+```bash
+npm run dev
+```
+
+The server will start on `http://localhost:5173`
+
+3b. Run the application (with Flask)
+```bash
+npm run build # build react
+mkdir -p ../backend/build # Check if flask directory has build folder, create if it doesn't exist
+mv dist/* ../backend/build/ # Move static files built by react to flask build directory
+cd ../backend # Move to flask directory
+pip install -r requirements.txt # Install femme forward flask requirements
+python app.py # run app
+```
+The server will start on `http://localhost:5000`
+
+## Authentication
+
+The WebApp uses Firebase Google SSO. You need to configure your firebase to allow Google Sign-On

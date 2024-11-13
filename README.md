@@ -58,9 +58,9 @@ FemmeForward is an innovative AI-powered web application that democratizes healt
 - Continuous learning and adaptation
 
 ## Innovation in Gender Equality
-EmpowerWomen represents a paradigm shift in women's healthcare education by:
+FemmeForward represents a paradigm shift in women's healthcare education by:
 1. Making quality health information accessible to all women
 2. Using AI to break down traditional barriers
 3. Enabling informed healthcare choices
 
-Through this comprehensive approach, EmpowerWomen directly addresses the UN's Sustainable Development Goal 5 (Gender Equality) by tackling one of its root causes: the healthcare knowledge gap. By empowering women with health education, we're contributing to a future where every woman can make informed decisions about her health, leading to stronger, more equitable communities worldwide.
+Through this comprehensive approach, FemmeForward directly addresses the UN's Sustainable Development Goal 5 (Gender Equality) by tackling one of its root causes: the healthcare knowledge gap. By empowering women with health education, we're contributing to a future where every woman can make informed decisions about her health, leading to stronger, more equitable communities worldwide.

@@ -32,7 +32,7 @@ GENAI_API=your_gemini_api_key
 1. Clone the repository:
 ```bash
 git clone [repository-url]
-cd empowerwomen-backend
+cd femmeforward-backend
 ```
 
 2. Install dependencies:
