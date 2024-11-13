@@ -37,7 +37,6 @@ class Topic(Enum):
     skincare = "Skincare"
     haircare = "Haircare"
     bodycare = "Bodycare"
-    sexual_health = "Sexual Health"
     preventive_care = "Preventive Care"
     pregnancy = "Pregnancy"
     puberty = "Puberty"
@@ -122,7 +121,7 @@ class ProgressTracker:
         
         # Define topic mapping based on interests
         interest_topic_mapping = {
-            'reproductive health': [Topic.fertility, Topic.contraception, Topic.sexual_health],
+            'reproductive health': [Topic.fertility, Topic.contraception],
             'menstrual health': [Topic.period_care, Topic.pms, Topic.hormonal_health],
             'mental health': [Topic.mental_health, Topic.mindfulness, Topic.stress_management],
             'physical health': [Topic.workouts, Topic.balanced_diet, Topic.habits],
@@ -134,7 +133,7 @@ class ProgressTracker:
         age_restricted_topics = {
             'TEEN': {
                 'allowed': [Topic.puberty, Topic.self_esteem, Topic.acceptance, Topic.period_care],
-                'restricted': [Topic.fertility, Topic.contraception, Topic.sexual_health]
+                'restricted': [Topic.fertility, Topic.contraception]
             },
             'YOUNG_ADULT': {
                 'allowed': list(Topic),  # All topics allowed
