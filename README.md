@@ -1,7 +1,7 @@
 # FemmeForward: AI-Powered Healthcare Education Platform
 
 ## Project Overview
-FemmeForward is an innovative AI-powered mobile application that democratizes healthcare education for women worldwide. By leveraging Google Gemini's advanced AI capabilities and Firebase's robust infrastructure, we're creating a personalized, accessible, and comprehensive healthcare education platform that breaks down traditional barriers to women's health knowledge.
+FemmeForward is an innovative AI-powered web application that democratizes healthcare education for women worldwide. By leveraging Google Gemini's advanced AI capabilities and Firebase's robust infrastructure, we're creating a personalized, accessible, and comprehensive healthcare education platform that breaks down traditional barriers to women's health knowledge.
 
 ## Core Features
 • **Personalized Learning Journeys**
@@ -13,7 +13,6 @@ FemmeForward is an innovative AI-powered mobile application that democratizes he
   - Google Gemini generates age-appropriate and evidence-based content
   - Real-time adaptation to user comprehension
   - Personalized quiz creation
-  - Interactive health information visualization
 
 ## Contribution to Gender Equality
 
@@ -35,9 +34,7 @@ FemmeForward is an innovative AI-powered mobile application that democratizes he
 
 ### 4. Social Change
 - Breaks stigma around women's health topics
-- Creates supportive communities
 - Challenges traditional health misconceptions
-- Promotes intergenerational health knowledge sharing
 
 ### 5. Healthcare Access
 - Provides 24/7 access to reliable health information
