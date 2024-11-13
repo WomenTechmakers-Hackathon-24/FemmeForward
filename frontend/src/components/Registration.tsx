@@ -71,7 +71,6 @@ const Registration = () => {
       await completeRegistration(completeData);
       const profileResponse = await api.get(`/profile`);
       updateUserData(profileResponse.data);
-      
     } catch (error) {
       console.error('Registration failed:', error);
       setError('Failed to complete registration. Please try again.');

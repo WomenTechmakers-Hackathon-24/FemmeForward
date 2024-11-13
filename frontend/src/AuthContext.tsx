@@ -192,7 +192,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateUserData = (updatedUser : UserData) => {
     setUserData(updatedUser);
   }
-
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       try {
@@ -234,7 +233,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setRememberMe,
         setError, 
         login, 
-        logout, 
+        logout,
         completeRegistration,
         updateUserData
       }}
@@ -251,3 +250,4 @@ export const useAuth = (): AuthContextProps => {
   }
   return context;
 };
+
