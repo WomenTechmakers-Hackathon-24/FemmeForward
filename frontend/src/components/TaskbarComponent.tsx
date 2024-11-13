@@ -18,7 +18,7 @@ const TaskbarComponent: React.FC<TaskBarComponentProps> = ({ onBack, onProfileCl
         return "bg-green-500"; // Green for beginner
       case "intermediate":
         return "bg-yellow-500"; // Yellow for intermediate
-      case "hard":
+      case "advanced":
         return "bg-red-500"; // Red for hard
       default:
         return "bg-gray-500"; // Default gray if difficulty is unknown

@@ -10,7 +10,7 @@ import api from '@/api/axios';
 import InterestsComponent from './Topic/InterestsComponent'; // Import the InterestsSelection component
 
 const Registration = () => {
-  const { googleUser, completeRegistration, logout } = useAuth();
+  const { googleUser, completeRegistration, logout, updateUserData } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [step, setStep] = useState(1);
@@ -69,6 +69,8 @@ const Registration = () => {
       };
 
       await completeRegistration(completeData);
+      const profileResponse = await api.get(`/profile`);
+      updateUserData(profileResponse.data);
     } catch (error) {
       console.error('Registration failed:', error);
       setError('Failed to complete registration. Please try again.');
