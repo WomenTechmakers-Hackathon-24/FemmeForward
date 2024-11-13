@@ -27,6 +27,7 @@ interface AuthContextProps {
   login: () => Promise<void>;
   logout: () => Promise<void>;
   completeRegistration: (userData: Partial<UserData>) => Promise<void>;
+  updateUserData: (updatedUser: UserData) => void;
 }
 
 const AuthContext = createContext<AuthContextProps | null>(null);
@@ -50,7 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('rememberMe', rememberMe.toString());
   }, [rememberMe]);
 
-  const checkUserRegistration = async (_user: User, retries = 3) => {
+  const checkUserRegistration = async (user: User, retries = 3) => {
     setLoadingStates(prev => ({ ...prev, profileCheck: true }));
     const auth = getAuth();
     const currentUser = auth.currentUser;
@@ -188,6 +189,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateUserData = (updatedUser : UserData) => {
+    setUserData(updatedUser);
+  }
+
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       try {
@@ -230,7 +235,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setError, 
         login, 
         logout, 
-        completeRegistration 
+        completeRegistration,
+        updateUserData
       }}
     >
       {children}
