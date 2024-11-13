@@ -85,7 +85,7 @@ const Profile = () => {
     }
 
     try {
-      const response = await api.put(`/profile`, {
+      await api.put(`/profile`, {
         name: userProfile?.name,
         birthdate: userProfile?.birthdate,
         interests: userInterests,

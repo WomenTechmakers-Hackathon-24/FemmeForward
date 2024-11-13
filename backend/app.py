@@ -1,5 +1,4 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+from flask import Flask, request, jsonify, send_from_directory
 from firebase_admin import firestore, credentials, auth
 import firebase_admin
 import google.generativeai as genai
@@ -14,22 +13,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 from ContentGenerator import ContentGenerator
 from ProgressTracker import ProgressTracker
 
-app = Flask(__name__)
-# Configure CORS
-CORS(app, resources={
-    r"/*": {
-        "origins": [
-            "http://localhost:3000",  # React default port
-            "http://localhost:5173",  # Vite default port
-            "http://127.0.0.1:3000",
-            "http://127.0.0.1:5173",
-            "https://empowerwomen-fbbda.web.app/"
-        ],
-        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"],
-        "supports_credentials": True
-    }
-})
+app = Flask(__name__, static_folder='build') #static_folder='build' includes react app
+
 
 load_dotenv()
 
@@ -68,11 +53,16 @@ def token_required(f):
     
     return decorated
 
-# for pre-flight options
-@app.route('/<path:path>', methods=['OPTIONS'])
-def handle_options(path):
-    return '', 200
-    
+# Route to serve the React app
+@app.route('/')
+def index():
+    return send_from_directory(os.path.join(app.root_path, 'build'), 'index.html')
+
+# Route to serve static files (JS, CSS, images, etc.)
+@app.route('/<path:path>')
+def static_files(path):
+    return send_from_directory(os.path.join(app.root_path, 'build'), path)
+
 @app.route('/register', methods=['POST'])
 def register_user():
     progress_tracker = ProgressTracker()
